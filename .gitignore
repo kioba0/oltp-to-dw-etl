@@ -1,0 +1,20 @@
+# Arquivos temporários de editores
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.iml
+
+# Saídas de ferramentas de BD
+*.dump
+*.bak
+
+# Credenciais (nunca versionar!)
+*.env
+.env
+credentials.txt

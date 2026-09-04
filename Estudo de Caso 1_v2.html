@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tópicos Especiais em Banco de Dados — ETL & Data Warehouse (UNEB)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Montserrat:wght@600;700;800;900&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        uneb: {
+                            blue: '#003B7A',
+                            darkblue: '#002652',
+                            lightblue: '#EFF6FF',
+                            accentblue: '#0056B3',
+                            red: '#C62828',
+                            darkred: '#9B1C1C',
+                            lightred: '#FFEBEE',
+                            border: '#CBD5E1',
+                            text: '#1E293B',
+                            muted: '#475569',
+                            bg: '#F8FAFC'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        heading: ['Montserrat', 'sans-serif'],
+                        code: ['Fira Code', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom scrollbar and animations */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F1F5F9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #003B7A;
+            border-radius: 4px;
+        }
+
+        .tab-active {
+            border-bottom: 3px solid #C62828;
+            color: #003B7A;
+            font-weight: 700;
+            background-color: #EFF6FF;
+        }
+
+        .code-block {
+            background-color: #0F172A;
+            color: #E2E8F0;
+            font-family: 'Fira Code', monospace;
+        }
+
+        /* Pulsing connector animation for data flows */
+        @keyframes pulseLine {
+            0% { stroke-dashoffset: 100; }
+            100% { stroke-dashoffset: 0; }
+        }
+        .data-flow-line {
+            stroke-dasharray: 8 6;
+            animation: pulseLine 20s linear infinite;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col justify-between">
+
+    <!-- TOP HEADER BAR -->
+    <header class="bg-gradient-to-r from-uneb-darkblue via-uneb-blue to-uneb-darkblue text-white shadow-lg sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col md:flex-row items-center justify-between gap-4">
+            
+            <div class="flex items-center space-x-4">
+                <div class="bg-white text-uneb-blue font-heading font-black text-xs px-2.5 py-1.5 rounded-lg shadow uppercase tracking-wider">
+                    UNEB
+                </div>
+                <div class="h-8 w-px bg-white/20 hidden sm:block"></div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-0.5 bg-uneb-red text-white text-[10px] font-bold uppercase rounded tracking-wider">
+                            Tópicos Especiais em BD
+                        </span>
+                        <span class="text-xs text-blue-200 hidden sm:inline">Sistemas de Informação</span>
+                    </div>
+                    <h1 class="text-lg sm:text-xl lg:text-2xl font-heading font-extrabold text-white leading-tight">
+                        INTEGRAÇÃO DE BANCOS DE DADOS OPERACIONAIS, ETL &amp; DATA WAREHOUSE
+                    </h1>
+                </div>
+            </div>
+
+            <!-- Header Controls -->
+            <div class="flex items-center gap-2.5 self-end md:self-center">
+                <button onclick="openSqlScriptModal()" class="px-3 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-semibold border border-white/20 transition flex items-center gap-2" title="Visualizar Script DDL MySQL">
+                    <i class="fa-solid fa-code"></i>
+                    <span class="hidden sm:inline">Script OLTP (MySQL)</span>
+                </button>
+
+                <button onclick="toggleFullScreen()" class="px-3 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-semibold border border-white/20 transition flex items-center gap-2" title="Modo TV 55&quot; / Tela Cheia">
+                    <i class="fa-solid fa-expand"></i>
+                    <span class="hidden sm:inline">Modo TV 55"</span>
+                </button>
+
+                <a href="#roteiro" onclick="switchTab('roteiro')" class="px-3.5 py-2 bg-uneb-red hover:bg-red-700 text-white rounded-lg text-xs font-bold shadow transition flex items-center gap-2">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span>Roteiro do Projeto</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- NAVIGATION TABS BAR -->
+    <nav class="bg-white border-b border-slate-200 sticky top-[65px] z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex overflow-x-auto space-x-1 sm:space-x-2 py-1 text-xs sm:text-sm font-semibold">
+            <button id="tab-silos" onclick="switchTab('silos')" class="tab-btn tab-active px-4 py-2.5 rounded-lg flex items-center gap-2 whitespace-nowrap transition">
+                <i class="fa-solid fa-database text-uneb-blue"></i>
+                <span>1. Silos OLTP Origem</span>
+            </button>
+            <button id="tab-convergencia" onclick="switchTab('convergencia')" class="tab-btn px-4 py-2.5 rounded-lg flex items-center gap-2 whitespace-nowrap text-slate-600 hover:text-uneb-blue transition">
+                <i class="fa-solid fa-diagram-project text-uneb-red"></i>
+                <span>2. Áreas de Convergência</span>
+            </button>
+            <button id="tab-dw" onclick="switchTab('dw')" class="tab-btn px-4 py-2.5 rounded-lg flex items-center gap-2 whitespace-nowrap text-slate-600 hover:text-uneb-blue transition">
+                <i class="fa-solid fa-cubes-stacked text-amber-600"></i>
+                <span>3. Modelo Dimensional (DW)</span>
+            </button>
+            <button id="tab-etl" onclick="switchTab('etl')" class="tab-btn px-4 py-2.5 rounded-lg flex items-center gap-2 whitespace-nowrap text-slate-600 hover:text-uneb-blue transition">
+                <i class="fa-solid fa-gears text-emerald-600"></i>
+                <span>4. Pipeline ETL &amp; Regras</span>
+            </button>
+            <button id="tab-roteiro" onclick="switchTab('roteiro')" class="tab-btn px-4 py-2.5 rounded-lg flex items-center gap-2 whitespace-nowrap text-slate-600 hover:text-uneb-blue transition">
+                <i class="fa-solid fa-chalkboard-user text-purple-600"></i>
+                <span>5. Roteiro do Aluno &amp; KPIs</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
+
+        <!-- TAB 1: SILOS OPERACIONAIS (OLTP) -->
+        <section id="view-silos" class="tab-view space-y-6">
+            <!-- Intro Banner -->
+            <div class="bg-gradient-to-r from-blue-50 via-white to-blue-50 border border-blue-200 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div class="space-y-1">
+                    <span class="text-xs font-bold uppercase tracking-wider text-uneb-blue flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-info"></i> Ambiente Transacional Heterogêneo (OLTP)
+                    </span>
+                    <h2 class="text-lg font-heading font-extrabold text-uneb-darkblue">
+                        Três Bancos de Dados Isolados — Fontes do Pipeline ETL
+                    </h2>
+                    <p class="text-xs sm:text-sm text-slate-600 max-w-3xl">
+                        A empresa opera em 3 sistemas independentes com esquemas e identidades desconectadas. O primeiro desafio da equipe é explorar a estrutura das fontes `vendas_db`, `logistica_db` e `financeiro_db`.
+                    </p>
+                </div>
+                <div class="bg-uneb-blue text-white p-3 rounded-xl text-center shrink-0 w-full md:w-auto">
+                    <span class="block text-xl font-black font-heading">3 DBs</span>
+                    <span class="text-[10px] uppercase font-semibold text-blue-200">Bancos Heterogêneos</span>
+                </div>
+            </div>
+
+            <!-- 3 DB Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                <!-- DB 1: Vendas -->
+                <div class="bg-white rounded-2xl border-2 border-blue-200 p-5 shadow-sm hover:shadow-md transition">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-blue-100 text-uneb-blue flex items-center justify-center font-bold">
+                                <i class="fa-solid fa-cart-shopping"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-heading font-bold text-slate-800">vendas_db</h3>
+                                <span class="text-[11px] text-slate-400 font-medium">Gestão Comercial</span>
+                            </div>
+                        </div>
+                        <span class="px-2 py-0.5 bg-blue-50 text-uneb-blue border border-blue-200 text-[10px] font-bold rounded">OLTP</span>
+                    </div>
+
+                    <div class="mt-4 space-y-3">
+                        <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                            <div class="flex items-center justify-between text-xs font-bold text-slate-700">
+                                <span><i class="fa-solid fa-table text-uneb-blue mr-1"></i> produtos</span>
+                                <span class="text-[10px] text-slate-400">10 registros</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 mt-1">`id_produto`, `nome_produto`, `categoria`, `preco`</p>
+                        </div>
+
+                        <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                            <div class="flex items-center justify-between text-xs font-bold text-slate-700">
+                                <span><i class="fa-solid fa-table text-uneb-blue mr-1"></i> clientes</span>
+                                <span class="text-[10px] text-slate-400">10 registros</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 mt-1">`id_cliente`, `nome_cliente`, `cidade`, `estado`</p>
+                        </div>
+
+                        <div class="p-2.5 bg-blue-50/60 rounded-xl border border-blue-100">
+                            <div class="flex items-center justify-between text-xs font-bold text-uneb-blue">
+                                <span><i class="fa-solid fa-receipt mr-1"></i> vendas (Transacional)</span>
+                                <span class="text-[10px] text-blue-600 font-bold">Fato Principal</span>
+                            </div>
+                            <p class="text-[11px] text-slate-600 mt-1">`id_venda`, `id_cliente`, `id_produto`, `data_venda`, `quantidade`, `valor_total`</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DB 2: Logística -->
+                <div class="bg-white rounded-2xl border-2 border-amber-200 p-5 shadow-sm hover:shadow-md transition">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
+                                <i class="fa-solid fa-truck-ramp-box"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-heading font-bold text-slate-800">logistica_db</h3>
+                                <span class="text-[11px] text-slate-400 font-medium">Estoque e Entregas</span>
+                            </div>
+                        </div>
+                        <span class="px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold rounded">OLTP</span>
+                    </div>
+
+                    <div class="mt-4 space-y-3">
+                        <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                            <div class="flex items-center justify-between text-xs font-bold text-slate-700">
+                                <span><i class="fa-solid fa-table text-amber-600 mr-1"></i> fornecedores</span>
+                                <span class="text-[10px] text-slate-400">10 registros</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 mt-1">`id_fornecedor`, `nome_fornecedor`, `contato`</p>
+                        </div>
+
+                        <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                            <div class="flex items-center justify-between text-xs font-bold text-slate-700">
+                                <span><i class="fa-solid fa-boxes-stacked text-amber-600 mr-1"></i> estoque</span>
+                                <span class="text-[10px] text-slate-400">FK Externa: id_produto</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 mt-1">`id_estoque`, `id_produto`, `id_fornecedor`, `quantidade_disponivel`, `data_ultima_entrada`</p>
+                        </div>
+
+                        <div class="p-2.5 bg-amber-50/60 rounded-xl border border-amber-200">
+                            <div class="flex items-center justify-between text-xs font-bold text-amber-800">
+                                <span><i class="fa-solid fa-truck-fast mr-1"></i> entregas</span>
+                                <span class="text-[10px] text-amber-700 font-bold">FK Externa: id_venda</span>
+                            </div>
+                            <p class="text-[11px] text-slate-600 mt-1">`id_entrega`, `id_venda`, `data_entrega`, `status_entrega` (Entregue / Em Trânsito / Pendente)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DB 3: Financeiro -->
+                <div class="bg-white rounded-2xl border-2 border-emerald-200 p-5 shadow-sm hover:shadow-md transition">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+                                <i class="fa-solid fa-file-invoice-dollar"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-heading font-bold text-slate-800">financeiro_db</h3>
+                                <span class="text-[11px] text-slate-400 font-medium">Caixa e Custos</span>
+                            </div>
+                        </div>
+                        <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold rounded">OLTP</span>
+                    </div>
+
+                    <div class="mt-4 space-y-3">
+                        <div class="p-2.5 bg-emerald-50/60 rounded-xl border border-emerald-200">
+                            <div class="flex items-center justify-between text-xs font-bold text-emerald-800">
+                                <span><i class="fa-solid fa-credit-card mr-1"></i> pagamentos</span>
+                                <span class="text-[10px] text-emerald-700 font-bold">FK Externa: id_venda</span>
+                            </div>
+                            <p class="text-[11px] text-slate-600 mt-1">`id_pagamento`, `id_venda`, `data_pagamento`, `valor_pago`, `metodo_pagamento` (Pix / Crédito / Boleto)</p>
+                        </div>
+
+                        <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                            <div class="flex items-center justify-between text-xs font-bold text-slate-700">
+                                <span><i class="fa-solid fa-money-bill-transfer text-emerald-600 mr-1"></i> despesas</span>
+                                <span class="text-[10px] text-slate-400">Custo Operacional</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 mt-1">`id_despesa`, `descricao`, `valor`, `data_despesa`, `tipo_despesa` (Fixa / Variável)</p>
+                        </div>
+
+                        <div class="p-2 bg-slate-100/70 rounded-xl border border-dashed border-slate-200 text-[11px] text-slate-500 italic text-center">
+                            Acompanhamento de DRE, fluxo de caixa e margem de lucro por transação.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- TAB 2: ÁREAS DE CONVERGÊNCIA -->
+        <section id="view-convergencia" class="tab-view hidden space-y-6">
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                <div class="flex items-center space-x-3 mb-2">
+                    <div class="w-8 h-8 rounded-lg bg-uneb-red/10 text-uneb-red flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-link"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-heading font-extrabold text-uneb-blue">
+                            Mapeamento de Pontos de Junção entre Silos
+                        </h2>
+                        <p class="text-xs text-slate-500">Como integrar dados de 3 bancos independentes no ETL</p>
+                    </div>
+                </div>
+
+                <!-- Interactive Convergence Points -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mt-6">
+                    
+                    <!-- Point A -->
+                    <div class="p-4 rounded-xl bg-blue-50/70 border-2 border-blue-200 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="px-2 py-0.5 bg-uneb-blue text-white text-[10px] font-extrabold rounded uppercase">Conector 1</span>
+                            <span class="font-code text-xs font-bold text-uneb-blue">id_venda</span>
+                        </div>
+                        <h3 class="font-bold text-sm text-slate-800">Venda $\rightarrow$ Entrega $\rightarrow$ Pagamento</h3>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            A chave `id_venda` gerada em <code class="bg-blue-100 text-uneb-blue px-1 rounded">vendas_db.vendas</code> é referenciada como FK externa em <code class="bg-amber-100 text-amber-800 px-1 rounded">logistica_db.entregas</code> e <code class="bg-emerald-100 text-emerald-800 px-1 rounded">financeiro_db.pagamentos</code>.
+                        </p>
+                        <div class="bg-white p-2 rounded-lg border border-blue-100 text-[11px] text-slate-700 font-medium">
+                            <i class="fa-solid fa-lightbulb text-amber-500 mr-1"></i>
+                            <strong>Análise do DW:</strong> Tempo médio do pedido até a entrega + Adimplência por método de pagamento.
+                        </div>
+                    </div>
+
+                    <!-- Point B -->
+                    <div class="p-4 rounded-xl bg-amber-50/70 border-2 border-amber-200 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="px-2 py-0.5 bg-amber-700 text-white text-[10px] font-extrabold rounded uppercase">Conector 2</span>
+                            <span class="font-code text-xs font-bold text-amber-800">id_produto</span>
+                        </div>
+                        <h3 class="font-bold text-sm text-slate-800">Comercial $\rightarrow$ Estoque &amp; Fornecedor</h3>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            O item cadastrado em <code class="bg-blue-100 text-uneb-blue px-1 rounded">vendas_db.produtos</code> relaciona-se com os saldos físicos e datas de entrada em <code class="bg-amber-100 text-amber-800 px-1 rounded">logistica_db.estoque</code>.
+                        </p>
+                        <div class="bg-white p-2 rounded-lg border border-amber-100 text-[11px] text-slate-700 font-medium">
+                            <i class="fa-solid fa-lightbulb text-amber-500 mr-1"></i>
+                            <strong>Análise do DW:</strong> Giro de produto, risco de ruptura e desempenho por fornecedor parceiro.
+                        </div>
+                    </div>
+
+                    <!-- Point C -->
+                    <div class="p-4 rounded-xl bg-emerald-50/70 border-2 border-emerald-200 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="px-2 py-0.5 bg-emerald-700 text-white text-[10px] font-extrabold rounded uppercase">Conector 3</span>
+                            <span class="font-code text-xs font-bold text-emerald-800">Data &amp; Finanças</span>
+                        </div>
+                        <h3 class="font-bold text-sm text-slate-800">Receita Bruta vs. Despesas Operacionais</h3>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Abatimento das despesas operacionais fixas/variáveis (<code class="bg-emerald-100 text-emerald-800 px-1 rounded">financeiro_db.despesas</code>) do faturamento total de vendas por intervalo de tempo.
+                        </p>
+                        <div class="bg-white p-2 rounded-lg border border-emerald-100 text-[11px] text-slate-700 font-medium">
+                            <i class="fa-solid fa-lightbulb text-amber-500 mr-1"></i>
+                            <strong>Análise do DW:</strong> Demonstrativo de Resultado do Exercício (DRE Analítico) e Margem Líquida Real.
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Visual Integration Diagram -->
+                <div class="mt-8 bg-slate-900 rounded-2xl p-5 text-white overflow-hidden relative">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-blue-400 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-sitemap"></i> Topologia de Fluxo do Pipeline ETL para o DW
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center items-center">
+                        <div class="p-3 bg-slate-800/80 rounded-xl border border-slate-700">
+                            <span class="text-[10px] text-blue-300 uppercase font-bold block">Etapa 1: Extract (OLTP)</span>
+                            <span class="font-extrabold text-sm text-white">vendas_db + logistica_db + financeiro_db</span>
+                        </div>
+
+                        <div class="text-slate-400 font-bold text-lg hidden md:block">
+                            <i class="fa-solid fa-arrow-right-long text-uneb-red animate-pulse"></i>
+                        </div>
+
+                        <div class="p-3 bg-slate-800/80 rounded-xl border border-slate-700">
+                            <span class="text-[10px] text-amber-300 uppercase font-bold block">Etapa 2: Transform</span>
+                            <span class="font-extrabold text-sm text-white">Limpeza + Surrogate Keys + Padronização de Datas</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-4 border-t border-slate-800 text-center">
+                        <span class="text-[10px] text-emerald-400 uppercase font-bold block">Etapa 3: Load (DW Final)</span>
+                        <span class="font-heading font-black text-lg text-emerald-300">DATA WAREHOUSE (Esquema Estrela)</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: MODELO DIMENSIONAL (DW) -->
+        <section id="view-dw" class="tab-view hidden space-y-6">
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                    <div>
+                        <span class="px-2.5 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded-md uppercase">Arquitetura Sugerida</span>
+                        <h2 class="text-xl font-heading font-extrabold text-uneb-blue mt-1">
+                            Esquema Estrela do Data Warehouse (Star Schema)
+                        </h2>
+                        <p class="text-xs text-slate-500">Unificação das 3 fontes operacionais em Tabelas Fato e Tabelas Dimensão</p>
+                    </div>
+                    <div class="bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-700 font-semibold">
+                        <i class="fa-solid fa-key text-amber-600 mr-1"></i> Surrogate Keys Obrigatorias
+                    </div>
+                </div>
+
+                <!-- Star Schema Grid Representation -->
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                    
+                    <!-- DIMENSIONS (4 COLS) -->
+                    <div class="md:col-span-5 space-y-3">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                            <i class="fa-solid fa-table-cells"></i> Tabelas Dimensão (Contexto)
+                        </h3>
+
+                        <!-- Dim Cliente -->
+                        <div class="p-3 bg-blue-50/70 rounded-xl border border-blue-200">
+                            <div class="flex justify-between items-center text-xs font-bold text-uneb-blue">
+                                <span>Dim_Cliente</span>
+                                <span class="font-code text-[10px]">sk_cliente (PK)</span>
+                            </div>
+                            <p class="text-[11px] text-slate-600 mt-1">`id_cliente_origem`, `nome_cliente`, `cidade`, `estado`</p>
+                        </div>
+
+                        <!-- Dim Produto -->
+                        <div class="p-3 bg-blue-50/70 rounded-xl border border-blue-200">
+                            <div class="flex justify-between items-center text-xs font-bold text-uneb-blue">
+                                <span>Dim_Produto</span>
+                                <span class="font-code text-[10px]">sk_produto (PK)</span>
+                            </div>
+                            <p class="text-[11px] text-slate-600 mt-1">`id_produto_origem`, `nome_produto`, `categoria`, `preco_atual`</p>
+                        </div>
+
+                        <!-- Dim Fornecedor -->
+                        <div class="p-3 bg-amber-50/70 rounded-xl border border-amber-200">
+                            <div class="flex justify-between items-center text-xs font-bold text-amber-800">
+                                <span>Dim_Fornecedor</span>
+                                <span class="font-code text-[10px]">sk_fornecedor (PK)</span>
+                            </div>
+                            <p class="text-[11px] text-slate-600 mt-1">`id_fornecedor_origem`, `nome_fornecedor`, `contato`</p>
+                        </div>
+
+                        <!-- Dim Tempo -->
+                        <div class="p-3 bg-purple-50/70 rounded-xl border border-purple-200">
+                            <div class="flex justify-between items-center text-xs font-bold text-purple-900">
+                                <span>Dim_Tempo</span>
+                                <span class="font-code text-[10px]">sk_tempo (PK)</span>
+                            </div>
+                            <p class="text-[11px] text-slate-600 mt-1">`data_completa`, `dia`, `mes`, `nome_mes`, `trimestre`, `ano`, `dia_semana`</p>
+                        </div>
+                    </div>
+
+                    <!-- FACTS (7 COLS) -->
+                    <div class="md:col-span-7 space-y-3">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                            <i class="fa-solid fa-chart-line"></i> Tabelas Fato (Métricas do Negócio)
+                        </h3>
+
+                        <!-- Fato Vendas Integrada -->
+                        <div class="p-4 bg-gradient-to-br from-uneb-blue to-uneb-darkblue text-white rounded-2xl shadow-md space-y-2">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold text-sm text-blue-200">Fato_Vendas_Integrada</span>
+                                <span class="text-[10px] bg-red-600 px-2 py-0.5 rounded font-extrabold uppercase">Fato Principal</span>
+                            </div>
+                            <p class="text-xs text-blue-100">
+                                Unifica o processo de venda, a liquidação financeira e a entrega do pedido em uma única visão analítica.
+                            </p>
+                            <div class="pt-2 border-t border-blue-800/80 grid grid-cols-2 gap-2 text-[11px]">
+                                <div>
+                                    <span class="text-blue-300 font-semibold block">Chaves (FKs):</span>
+                                    <code class="text-blue-100 block">sk_cliente, sk_produto, sk_tempo_venda, sk_tempo_pagamento, sk_tempo_entrega</code>
+                                </div>
+                                <div>
+                                    <span class="text-amber-300 font-semibold block">Métricas (Fatos):</span>
+                                    <code class="text-amber-100 block">quantidade, valor_total_venda, valor_pago, dias_para_entrega</code>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Fato Despesas Operacionais -->
+                        <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200">
+                            <div class="flex justify-between items-center text-xs font-bold text-emerald-800">
+                                <span>Fato_Despesas_Operacionais</span>
+                                <span class="font-code text-[10px]">Métricas Financeiras</span>
+                            </div>
+                            <p class="text-[11px] text-slate-600 mt-1">
+                                `sk_tempo`, `tipo_despesa`, `descricao`, `valor_despesa`
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: PIPELINE ETL & REGRAS DE NEGÓCIO -->
+        <section id="view-etl" class="tab-view hidden space-y-6">
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                <div class="flex items-center space-x-3 mb-4">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-sliders"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-heading font-extrabold text-uneb-blue">
+                            Regras de Transformação e Qualidade de Dados (ETL)
+                        </h2>
+                        <p class="text-xs text-slate-500">Requisitos para tratamento e carga no DW</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                        <h3 class="font-bold text-xs text-uneb-blue uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-key text-amber-600"></i> 1. Geração de Surrogate Keys (SKs)
+                        </h3>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Como as tabelas de origem possuem chaves numéricas simples (`id_cliente = 1`, `id_produto = 1`)

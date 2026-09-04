@@ -1,0 +1,47 @@
+1. Objetivos 
+
+A atividade foca na aplicação prática da modelagem dimensional e na estruturação de um Data Warehouse a partir do alinhamento e consolidação de bases de dados operacionais relacionais. 
+
+Os objetivos compreendem: 
+
+Consolidar os conceitos de orientação por assunto, integração, não-volatilidade e variação temporal. 
+Desenvolver um modelo dimensional (Star Schema) adequado às entidades de vendas e clientes. 
+Demonstrar a integração de dados a partir das tabelas relacionais do sistema transacional para suporte à tomada de decisão. 
+2. Estudo de Caso: Sistema de Vendas Operacional 
+
+O cenário proposto baseia-se na base operacional vendas_db, composta pelas tabelas de produtos, clientes e vendas. 
+
+2.1. Identificação dos Processos de Negócio 
+
+O processo central a ser modelado é a Venda de Produtos. 
+
+2.2. Definição da Granularidade 
+
+A granularidade definida estabelece-se em cada registro individual de venda realizada (nível de transação por cliente e produto). 
+
+2.3. Identificação das Dimensões 
+
+Alinhadas rigorosamente ao esquema operacional fornecido, as dimensões identificadas são: 
+
+Dim_Tempo: Data da Venda, Mês, Trimestre, Ano. 
+Dim_Produto: Nome do Produto, Categoria, Preço. 
+Dim_Cliente: Nome do Cliente, Cidade, Estado. 
+2.4. Identificação do Fato 
+
+A tabela fato (Fato_Vendas) conterá as seguintes métricas: 
+
+Quantidade Vendida. 
+Valor Total. 
+3. Processamento e Análise de Dados 
+
+Nesta etapa, realiza-se a simulação do processo de Extração, Transformação e Carga (ETL) a partir das tabelas relacionais do banco operacional. Os dados são padronizados e carregados no modelo dimensional, reforçando os conceitos de integração e variação temporal. 
+
+A consulta e agregação dos dados analíticos permitem extrair visões consolidadas, como o total de vendas por estado ou por categoria de produto. 
+
+4. Atividade Prática 
+
+Para a execução da atividade, solicita-se aos discentes: 
+
+1. Desenhar o diagrama do Star Schema com base nas tabelas relacionais de produtos, clientes e vendas. 
+
+2. Implementar as consultas de carga e agregação para gerar três visões analíticas distintas (ex.: Vendas por Estado, Vendas por Categoria e Faturamento por Período). 
