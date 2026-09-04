@@ -1,0 +1,51 @@
+services:
+
+  # ─────────────────────────────────────────
+  # MySQL — banco operacional + data warehouse
+  # ─────────────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: oltp_dw_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: vendas_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init:/docker-entrypoint-initdb.d   # scripts SQL executados na 1ª inicialização
+    networks:
+      - dw_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─────────────────────────────────────────
+  # Metabase — visualização do Data Warehouse
+  # ─────────────────────────────────────────
+  metabase:
+    image: metabase/metabase:latest
+    container_name: metabase
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      MB_DB_TYPE: h2                          # banco interno do Metabase (metadados)
+    volumes:
+      - metabase_data:/metabase-data
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - dw_network
+
+volumes:
+  mysql_data:
+  metabase_data:
+
+networks:
+  dw_network:
+    driver: bridge
