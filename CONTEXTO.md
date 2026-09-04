@@ -203,7 +203,16 @@ As consultas devem ser executadas **contra o DW** (dw_vendas), não contra o ban
 
 ---
 
-## 8. Estrutura de Arquivos do Projeto
+## 8. Infraestrutura e Visualização (Docker & Metabase)
+
+Para execução local isolada e visualização analítica, o projeto conta com ambiente via **Docker Compose**:
+
+- **MySQL 8.0 (`oltp_dw_mysql`)**: Porta `3306`. Hospeda os bancos operacionais (`vendas_db`, `logistica_db`, `financeiro_db`) e o Data Warehouse (`dw_vendas`).
+- **Metabase (`metabase`)**: Porta `3000`. Ferramenta de Business Intelligence conectada ao `dw_vendas` (host `mysql:3306`) para montagem visual de dashboards baseados nas 3 consultas analíticas.
+
+---
+
+## 9. Estrutura de Arquivos do Projeto
 
 ```
 atividade_1/
@@ -214,7 +223,14 @@ atividade_1/
 ├── CONTEXTO.md                      # Este arquivo — contexto e referência do projeto
 ├── CHECKLIST.md                     # Tarefas passo a passo com status
 │
-└── solucao/                         # (a criar) Scripts da solução
+├── docker/                          # Infraestrutura de containers
+│   ├── docker-compose.yml           # Definição dos serviços MySQL 8.0 + Metabase
+│   ├── .env                         # Variáveis de ambiente (não versionado)
+│   ├── README.md                    # Instruções de uso e conexão do Metabase
+│   └── init/
+│       └── 01_oltp.sql              # Carga inicial automática do OLTP no container
+│
+└── solucao/                         # Scripts da solução
     ├── 01_criar_dw.sql              # DDL do banco dw_vendas
     ├── 02_etl_carga.sql             # ETL: carga das dimensões e da fato
     └── 03_consultas_analiticas.sql  # 3 visões analíticas exigidas

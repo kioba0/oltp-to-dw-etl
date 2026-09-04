@@ -5,40 +5,39 @@
 
 ---
 
-## Fase 0 — Preparação do Ambiente
-
-- [ ] **0.1 — Abrir o material de apoio no browser**
+## Fase 0 — Preparação do Ambiente e Repositório
+ 
+- [x] **0.1 — Abrir o material de apoio no browser**
   - Abrir `Estudo de Caso 1_v2.html` no navegador para ter o guia visual do professor.
   - Navegar pelas abas: Silos OLTP → Áreas de Convergência → Modelo Dimensional → Pipeline ETL → Roteiro do Aluno.
 
-- [ ] **0.2 — Garantir acesso ao MySQL**
-  - Ter MySQL rodando localmente (ou MySQL Workbench / DBeaver conectado).
-  - Confirmar que o usuário tem permissão para `CREATE DATABASE`.
+- [x] **0.2 — Infraestrutura local via Docker Compose (MySQL + Metabase)**
+  - Configurado `docker/docker-compose.yml` com MySQL 8.0 e Metabase.
+  - Script OLTP mapeado para inicialização automática em `docker/init/01_oltp.sql`.
+  - Ambiente testado com sucesso (containers saudáveis e Metabase respondendo HTTP 200).
 
-- [ ] **0.3 — Criar a pasta `solucao/`**
-  - Criar a subpasta `atividade_1/solucao/` onde ficarão os scripts da entrega.
+- [x] **0.3 — Repositório Git e GitHub**
+  - Repositório inicializado localmente com `.gitignore`.
+  - Publicado no GitHub em: [`kioba0/oltp-to-dw-etl`](https://github.com/kioba0/oltp-to-dw-etl).
+
+- [x] **0.4 — Criar a pasta `solucao/`**
+  - Pasta `atividade_1/solucao/` criada para armazenar os scripts da entrega.
 
 ---
 
 ## Fase 1 — Carregar os Bancos Operacionais (OLTP)
 
-- [ ] **1.1 — Executar o script OLTP fornecido**
+- [x] **1.1 — Executar o script OLTP fornecido**
   - Arquivo: `mysql_operational_dbs.sql`
-  - Esse script cria e popula os 3 bancos de origem:
+  - Criado e populado automaticamente via Docker Compose (`docker/init/01_oltp.sql`):
     - `vendas_db` → tabelas: `produtos`, `clientes`, `vendas`
     - `logistica_db` → tabelas: `fornecedores`, `estoque`, `entregas`
     - `financeiro_db` → tabelas: `pagamentos`, `despesas`
-  - **Atenção:** não modificar esse arquivo, ele é fornecido pelo professor.
-  - Como executar: `SOURCE mysql_operational_dbs.sql;` no MySQL CLI, ou importar pelo Workbench.
 
-- [ ] **1.2 — Validar os dados carregados**
-  - Confirmar que cada tabela tem 10 registros (conforme os INSERTs do script).
-  - Consultas de validação:
-    ```sql
-    SELECT COUNT(*) FROM vendas_db.vendas;      -- esperado: 10
-    SELECT COUNT(*) FROM vendas_db.clientes;    -- esperado: 10
-    SELECT COUNT(*) FROM vendas_db.produtos;    -- esperado: 10
-    ```
+- [x] **1.2 — Validar os dados carregados**
+  - Validação executada via `docker exec`:
+    - `vendas_db.vendas`: 10 registros validados.
+    - Bancos `financeiro_db` e `logistica_db` presentes.
 
 ---
 
@@ -135,39 +134,59 @@
 
 ---
 
-## Fase 5 — Diagrama Star Schema (entrega visual)
+## Fase 5 — Dashboards Analíticos no Metabase (BI & Visualização)
 
-- [ ] **5.1 — Escolher a ferramenta de diagramação**
+- [ ] **5.1 — Subir o ambiente Docker**
+  - Executar `docker compose up -d` na pasta `docker/`.
+  - Acessar `http://localhost:3000`.
+
+- [ ] **5.2 — Conectar Metabase ao DW**
+  - Adicionar nova base de dados MySQL apontando para o host `mysql`, porta `3306`, banco `dw_vendas`.
+
+- [ ] **5.3 — Criar visualizações (Questions)**
+  - Gráfico de barras para **Vendas por Estado**.
+  - Gráfico de pizza/rosca ou barras para **Vendas por Categoria**.
+  - Gráfico de linha/tendência para **Faturamento por Período**.
+
+- [ ] **5.4 — Montar o Dashboard Integrado**
+  - Criar um painel no Metabase unindo as 3 visões.
+  - Exportar capturas de tela para compor a documentação final.
+
+---
+
+## Fase 6 — Diagrama Star Schema (entrega visual)
+
+- [ ] **6.1 — Escolher a ferramenta de diagramação**
   - Opções recomendadas:
     - **dbdiagram.io** → online, gratuito, exporta PNG/PDF, específico para diagramas de BD
     - **draw.io (diagrams.net)** → online e desktop, mais flexível
     - **MySQL Workbench** → EER Diagram a partir do banco criado
 
-- [ ] **5.2 — Representar as 4 tabelas no diagrama**
+- [ ] **6.2 — Representar as 4 tabelas no diagrama**
   - `Dim_Tempo`, `Dim_Cliente`, `Dim_Produto` e `Fato_Vendas`.
   - Mostrar todos os campos de cada tabela.
   - Indicar PK e FKs.
 
-- [ ] **5.3 — Representar os relacionamentos**
+- [ ] **6.3 — Representar os relacionamentos**
   - Linhas de relacionamento de `Fato_Vendas` para cada dimensão (cardinalidade N:1).
 
-- [ ] **5.4 — Exportar o diagrama**
+- [ ] **6.4 — Exportar o diagrama**
   - Salvar como imagem (PNG ou PDF) em `solucao/diagrama_star_schema.png`.
 
 ---
 
-## Fase 6 — Revisão Final
+## Fase 7 — Revisão Final
 
-- [ ] **6.1 — Executar tudo do zero em sequência**
+- [ ] **7.1 — Executar tudo do zero em sequência**
   - Rodar `mysql_operational_dbs.sql` → `01_criar_dw.sql` → `02_etl_carga.sql` → `03_consultas_analiticas.sql`
   - Confirmar que nenhuma etapa gera erro.
 
-- [ ] **6.2 — Verificar os resultados das 3 visões analíticas**
+- [ ] **7.2 — Verificar os resultados das 3 visões analíticas**
   - Visão 1 deve retornar 10 linhas (1 por estado/cliente, sem agrupamentos duplicados)
   - Visão 2 deve retornar 4 categorias: Eletrônicos, Acessórios, Componentes, Móveis
   - Visão 3 deve retornar 1 linha (todos os dados são de janeiro/2024)
 
-- [ ] **6.3 — Revisar os arquivos da entrega**
+- [ ] **7.3 — Revisar os arquivos da entrega**
   - `solucao/01_criar_dw.sql` ✓
   - `solucao/02_etl_carga.sql` ✓
   - `solucao/03_consultas_analiticas.sql` ✓
@@ -183,3 +202,4 @@
 | `solucao/02_etl_carga.sql` | Script ETL de carga das dimensões e da fato |
 | `solucao/03_consultas_analiticas.sql` | 3 queries analíticas sobre o DW |
 | `solucao/diagrama_star_schema.png` | Diagrama visual do Star Schema |
+| `docker/` | Ambiente reproduzível para execução e visualização no Metabase |
