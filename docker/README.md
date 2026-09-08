@@ -31,18 +31,24 @@ Aguarde o Metabase aparecer como `Started` antes de abrir o browser.
 
 Abrir no browser: **http://localhost:3000**
 
-Na primeira vez, o Metabase pede para criar uma conta de administrador.
+O ambiente já vem **pré-configurado com a conexão ao Data Warehouse e os gráficos do dashboard prontos**!
 
-### 4. Conectar o Metabase ao MySQL
+**Credenciais de Acesso:**
+- **E-mail:** `cerveja123@gmail.com`
+- **Senha:** `cerveja123`
 
-Após criar a conta, adicionar uma conexão:
+---
+
+### 4. Conectar o Metabase ao MySQL (Já configurado automaticamente)
+
+A conexão com o `dw_vendas` já está salva na base do Metabase. Caso precise recriá-la manualmente:
 
 | Campo | Valor |
 |---|---|
 | Tipo de banco | MySQL |
 | Host | `mysql` (nome do serviço no compose) |
 | Porta | `3306` |
-| Banco | `dw_vendas` (após rodar o ETL) |
+| Banco | `dw_vendas` |
 | Usuário | `root` |
 | Senha | `root` |
 
@@ -65,7 +71,8 @@ docker/
 ├── docker-compose.yml   # Orquestração dos serviços
 ├── .env                 # Variáveis de ambiente (não versionar!)
 ├── init/
-│   └── 01_oltp.sql     # Script OLTP executado na 1ª inicialização do MySQL
+│   ├── 01_oltp.sql      # Script OLTP base executado na 1ª inicialização
+│   └── 02_dados_extras.sql # Volume histórico (3000 vendas 2024-2026, 300 clientes)
 └── README.md            # Este arquivo
 ```
 
@@ -74,10 +81,11 @@ docker/
 Após o ambiente subir, executar na seguinte ordem dentro do MySQL:
 
 ```
-1. init/01_oltp.sql          → criado automaticamente pelo container
-2. solucao/01_criar_dw.sql   → cria o banco dw_vendas e as tabelas dimensionais
-3. solucao/02_etl_carga.sql  → carrega as dimensões e a tabela fato
-4. solucao/03_consultas_analiticas.sql → as 3 visões analíticas
+1. init/01_oltp.sql          → criado automaticamente pelo container (dados base)
+2. init/02_dados_extras.sql  → criado automaticamente pelo container (volume histórico)
+3. solucao/01_criar_dw.sql   → cria o banco dw_vendas e as tabelas dimensionais
+4. solucao/02_etl_carga.sql  → carrega as dimensões e a tabela fato
+5. solucao/03_consultas_analiticas.sql → as 3 visões analíticas
 ```
 
 Para conectar ao MySQL pelo terminal:
