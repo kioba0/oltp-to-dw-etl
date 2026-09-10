@@ -132,6 +132,13 @@
   - Retornar: `ano`, `mes`, `nome_mes`, `total_itens`, `faturamento_total`.
   - Ordenar cronologicamente.
 
+- [x] **4.4 — Visão 4 (Bônus Executivo): Indicadores Globais (KPI Cards / Smart Numbers)**
+  - Retornar métricas consolidadas: total de transações, itens vendidos, faturamento global, ticket médio e preço médio por item.
+
+- [x] **4.5 — Visão 5 (Bônus Executivo): Top 10 Produtos Mais Rentáveis**
+  - Fazer JOIN de `Fato_Vendas` com `Dim_Produto`.
+  - Agrupar por produto e ordenar pelo faturamento total decrescente (LIMIT 10).
+
 ---
 
 ## Fase 5 — Dashboards Analíticos no Metabase (BI & Visualização)
@@ -177,10 +184,12 @@
   - Testado via Docker: `01_oltp.sql` + `02_dados_extras.sql` → `01_criar_dw.sql` → `02_etl_carga.sql` → `03_consultas_analiticas.sql`
   - Zero erros em todas as etapas.
 
-- [x] **7.2 — Verificar os resultados das 3 visões analíticas**
+- [x] **7.2 — Verificar os resultados das 5 visões analíticas**
   - Visão 1: Retornando os 27 estados do Brasil ordenados por faturamento.
   - Visão 2: Retornando as 4 categorias (Eletrônicos, Componentes, Móveis, Acessórios).
   - Visão 3: Retornando os 36 meses (2024 a 2026) com linha de evolução temporal completa.
+  - Visão 4: Indicadores executivos globais (ticket médio de R$ 2.737,74 e 3.010 transações).
+  - Visão 5: Top 10 produtos mais rentáveis liderado pelo Notebook Dell XPS.
 
 - [x] **7.3 — Revisar os arquivos da entrega**
   - `solucao/01_criar_dw.sql` ✓
