@@ -1,14 +1,5 @@
 -- =====================================================
--- Atividade 1: Consultas Analíticas (OLAP) sobre o Data Warehouse
--- Destino das queries: dw_vendas (Star Schema)
--- =====================================================
-
-USE dw_vendas;
-
--- =====================================================
 -- Visão 1: Total de Vendas por Estado
--- Objetivo: Identificar a distribuição geográfica do faturamento
---           e volume de itens vendidos.
 -- =====================================================
 SELECT
   `Dim Cliente - Sk Cliente`.`estado` AS `Dim Cliente - Sk Cliente__estado`,
@@ -34,8 +25,6 @@ ORDER BY
 
 -- =====================================================
 -- Visão 2: Total de Vendas por Categoria de Produto
--- Objetivo: Identificar quais categorias de produtos geram maior receita
---           e volume de vendas para a empresa.
 -- =====================================================
 SELECT
   `Dim Produto - Sk Produto`.`categoria` AS `Dim Produto - Sk Produto__categoria`,
@@ -61,8 +50,6 @@ ORDER BY
 
 -- =====================================================
 -- Visão 3: Faturamento por Período (Mês e Ano)
--- Objetivo: Analisar a evolução temporal das vendas e do faturamento,
---           permitindo identificar tendências de crescimento e sazonalidade.
 -- =====================================================
 SELECT
   STR_TO_DATE(
@@ -105,15 +92,8 @@ ORDER BY
     '%Y-%m-%d'
   ) ASC;
 
-
--- =====================================================
--- SUGESTÕES ADICIONAIS DE CONSULTAS PARA O METABASE
--- =====================================================
-
 -- =====================================================
 -- Visão 4: Indicadores Executivos Globais (KPI Cards / Smart Numbers)
--- Objetivo: Alimentar cartões de destaque no topo do dashboard
--- Gráfico Metabase: Number (Cartão)
 -- =====================================================
 SELECT 
     COUNT(fv.id_fato) AS total_transacoes,
@@ -127,8 +107,6 @@ FROM dw_vendas.Fato_Vendas fv;
 
 -- =====================================================
 -- Visão 5: Top 10 Produtos Mais Rentáveis
--- Objetivo: Identificar os produtos de maior impacto no faturamento
--- Gráfico Metabase: Bar (Horizontal) ou Table
 -- =====================================================
 SELECT 
     dp.nome_produto,
@@ -140,89 +118,3 @@ JOIN dw_vendas.Dim_Produto dp ON fv.sk_produto = dp.sk_produto
 GROUP BY dp.sk_produto, dp.nome_produto, dp.categoria
 ORDER BY faturamento_total DESC
 LIMIT 10;
-
-
--- =====================================================
--- Visão 6: Top 10 Clientes com Maior Volume de Compra (Clientes VIP)
--- Objetivo: Reconhecer os clientes mais valiosos para ações comerciais
--- Gráfico Metabase: Bar (Horizontal) ou Table
--- =====================================================
-SELECT 
-    dc.nome_cliente,
-    CONCAT(dc.cidade, ' - ', dc.estado) AS localizacao,
-    COUNT(fv.id_fato) AS total_pedidos,
-    SUM(fv.quantidade) AS total_itens,
-    SUM(fv.valor_total) AS faturamento_total
-FROM dw_vendas.Fato_Vendas fv
-JOIN dw_vendas.Dim_Cliente dc ON fv.sk_cliente = dc.sk_cliente
-GROUP BY dc.sk_cliente, dc.nome_cliente, dc.cidade, dc.estado
-ORDER BY faturamento_total DESC
-LIMIT 10;
-
-
--- =====================================================
--- Visão 7: Top 10 Cidades em Faturamento
--- Objetivo: Analisar as cidades mais representativas dentro dos estados
--- Gráfico Metabase: Bar (Horizontal)
--- =====================================================
-SELECT 
-    dc.cidade,
-    dc.estado,
-    CONCAT(dc.cidade, ' (', dc.estado, ')') AS cidade_uf,
-    COUNT(fv.id_fato) AS total_compras,
-    SUM(fv.valor_total) AS faturamento_total
-FROM dw_vendas.Fato_Vendas fv
-JOIN dw_vendas.Dim_Cliente dc ON fv.sk_cliente = dc.sk_cliente
-GROUP BY dc.cidade, dc.estado
-ORDER BY faturamento_total DESC
-LIMIT 10;
-
-
--- =====================================================
--- Visão 8: Evolução Temporal de Faturamento por Categoria (Multi-série)
--- Objetivo: Observar crescimento, sazonalidade e perda de mercado por categoria
--- Gráfico Metabase: Area (Stacked) ou Line
--- =====================================================
-SELECT 
-    STR_TO_DATE(CONCAT(DATE_FORMAT(dt.data_completa, '%Y-%m'), '-01'), '%Y-%m-%d') AS mes_ano,
-    dp.categoria,
-    SUM(fv.valor_total) AS faturamento_total,
-    SUM(fv.quantidade) AS total_itens
-FROM dw_vendas.Fato_Vendas fv
-JOIN dw_vendas.Dim_Tempo dt ON fv.sk_tempo = dt.sk_tempo
-JOIN dw_vendas.Dim_Produto dp ON fv.sk_produto = dp.sk_produto
-GROUP BY mes_ano, dp.categoria
-ORDER BY mes_ano ASC, faturamento_total DESC;
-
-
--- =====================================================
--- Visão 9: Comparativo Trimestral de Faturamento (Sazonalidade Q1 a Q4)
--- Objetivo: Identificar tendências sazonais e crescimento ano a ano
--- Gráfico Metabase: Bar (Barras agrupadas por ano)
--- =====================================================
-SELECT 
-    dt.ano,
-    dt.trimestre,
-    CONCAT('T', dt.trimestre, '/', dt.ano) AS trimestre_ano,
-    SUM(fv.valor_total) AS faturamento_total,
-    SUM(fv.quantidade) AS total_itens
-FROM dw_vendas.Fato_Vendas fv
-JOIN dw_vendas.Dim_Tempo dt ON fv.sk_tempo = dt.sk_tempo
-GROUP BY dt.ano, dt.trimestre, trimestre_ano
-ORDER BY dt.ano ASC, dt.trimestre ASC;
-
-
--- =====================================================
--- Visão 10: Distribuição de Faturamento por Dia do Mês
--- Objetivo: Identificar dias de pico de compra ao longo do mês (efeito salário/quinto dia útil)
--- Gráfico Metabase: Line ou Bar
--- =====================================================
-SELECT 
-    dt.dia,
-    COUNT(fv.id_fato) AS total_vendas,
-    SUM(fv.valor_total) AS faturamento_total,
-    ROUND(AVG(fv.valor_total), 2) AS ticket_medio
-FROM dw_vendas.Fato_Vendas fv
-JOIN dw_vendas.Dim_Tempo dt ON fv.sk_tempo = dt.sk_tempo
-GROUP BY dt.dia
-ORDER BY dt.dia ASC;
