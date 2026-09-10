@@ -220,18 +220,26 @@ atividade_1/
 ├── instrucoes.txt                   # Enunciado oficial da atividade
 ├── mysql_operational_dbs.sql        # Script dos bancos OLTP (NÃO MODIFICAR)
 │
+├── README.md                        # Guia principal do repositório
 ├── CONTEXTO.md                      # Este arquivo — contexto e referência do projeto
 ├── CHECKLIST.md                     # Tarefas passo a passo com status
 │
 ├── docker/                          # Infraestrutura de containers
 │   ├── docker-compose.yml           # Definição dos serviços MySQL 8.0 + Metabase
-│   ├── .env                         # Variáveis de ambiente (não versionado)
+│   ├── .env                         # Variáveis de ambiente locais (não versionado)
 │   ├── README.md                    # Instruções de uso e conexão do Metabase
-│   └── init/
-│       └── 01_oltp.sql              # Carga inicial automática do OLTP no container
+│   ├── metabase-data/               # Banco H2 do Metabase com dashboards pré-configurados
+│   │   └── metabase.db/
+│   └── init/                        # Execução automática no 1º boot do MySQL
+│       ├── 01_oltp.sql              # Carga inicial dos bancos OLTP
+│       ├── 02_dados_extras.sql      # Carga histórica (3.000 vendas 2024-2026, 300 clientes)
+│       ├── 03_criar_dw.sql          # DDL de criação do DW dw_vendas (Star Schema)
+│       └── 04_etl_carga.sql         # Pipeline de ETL (transformação e carga no DW)
 │
-└── solucao/                         # Scripts da solução
+└── solucao/                         # Artefatos da entrega acadêmica
     ├── 01_criar_dw.sql              # DDL do banco dw_vendas
     ├── 02_etl_carga.sql             # ETL: carga das dimensões e da fato
-    └── 03_consultas_analiticas.sql  # 3 visões analíticas exigidas
+    ├── 03_consultas_analiticas.sql  # 5 visões analíticas (3 obrigatórias + 2 executivas)
+    ├── diagrama_star_schema.png     # Diagrama visual do Star Schema (300 DPI)
+    └── diagrama_star_schema.puml    # Código-fonte do diagrama em PlantUML
 ```

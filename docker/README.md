@@ -1,6 +1,6 @@
 # Ambiente Docker — MySQL + Metabase
 
-Sobe o banco de dados MySQL e o Metabase juntos via Docker Compose.
+Sobe o banco de dados MySQL e o Metabase integrados via Docker Compose, com inicialização e carga analítica **100% automatizadas**.
 
 ## Pré-requisitos
 
@@ -16,8 +16,14 @@ Sobe o banco de dados MySQL e o Metabase juntos via Docker Compose.
 docker compose up -d
 ```
 
-Na **primeira execução**, o MySQL inicializa automaticamente com o script `init/01_oltp.sql`,
-que cria e popula os 3 bancos operacionais (`vendas_db`, `logistica_db`, `financeiro_db`).
+Na **primeira execução**, o container MySQL executa automaticamente em ordem todos os scripts da pasta `init/`:
+1. `init/01_oltp.sql`: Cria e popula os 3 bancos operacionais transacionais (`vendas_db`, `logistica_db`, `financeiro_db`).
+2. `init/02_dados_extras.sql`: Carrega volume histórico complementar (3.000 vendas adicionais de 2024 a 2026 e 300 clientes).
+3. `init/03_criar_dw.sql`: Cria o Data Warehouse `dw_vendas` e a estrutura do Star Schema (dimensões e fato).
+4. `init/04_etl_carga.sql`: Executa o pipeline ETL, mapeando e resolvendo Surrogate Keys e carregando o DW.
+
+> [!NOTE]
+> Nenhum script DDL ou de carga precisa ser executado manualmente para subir a aplicação: tudo sobe pronto, consistente e integrado ao Metabase.
 
 ### 2. Acompanhar os logs
 
@@ -25,11 +31,11 @@ que cria e popula os 3 bancos operacionais (`vendas_db`, `logistica_db`, `financ
 docker compose logs -f
 ```
 
-Aguarde o Metabase aparecer como `Started` antes de abrir o browser.
+Aguarde o Metabase aparecer como `Started` antes de abrir o navegador.
 
 ### 3. Acessar o Metabase
 
-Abrir no browser: **http://localhost:3000**
+Abrir no navegador: **http://localhost:3000**
 
 O ambiente já vem **pré-configurado com a conexão ao Data Warehouse e os gráficos do dashboard prontos**!
 
@@ -41,7 +47,7 @@ O ambiente já vem **pré-configurado com a conexão ao Data Warehouse e os grá
 
 ### 4. Conectar o Metabase ao MySQL (Já configurado automaticamente)
 
-A conexão com o `dw_vendas` já está salva na base do Metabase. Caso precise recriá-la manualmente:
+A conexão com o `dw_vendas` já está salva na base versionada do Metabase (`metabase-data/`). Caso precise recriá-la manualmente:
 
 | Campo | Valor |
 |---|---|
@@ -52,44 +58,58 @@ A conexão com o `dw_vendas` já está salva na base do Metabase. Caso precise r
 | Usuário | `root` |
 | Senha | `root` |
 
-### 5. Parar o ambiente
+### 5. Consultas Analíticas (OLAP via Terminal)
+
+Para inspecionar o Data Warehouse e testar as visões analíticas implementadas na entrega acadêmica:
+
+**Conexão interativa ao DW:**
+```bash
+docker exec -it oltp_dw_mysql mysql -uroot -proot dw_vendas
+```
+
+**Executar o script com as 5 visões analíticas de uma vez:**
+```bash
+docker exec -i oltp_dw_mysql mysql -uroot -proot dw_vendas < ../solucao/03_consultas_analiticas.sql
+```
+
+### 6. Parar o ambiente
 
 ```bash
 docker compose down
 ```
 
-Para parar **e apagar os dados** (volumes):
+Para parar **e apagar os volumes de dados** (reset total para recomeçar do zero):
 
 ```bash
 docker compose down -v
 ```
 
-## Estrutura
+---
+
+## Estrutura de Arquivos
 
 ```
 docker/
-├── docker-compose.yml   # Orquestração dos serviços
-├── .env                 # Variáveis de ambiente (não versionar!)
-├── init/
-│   ├── 01_oltp.sql      # Script OLTP base executado na 1ª inicialização
-│   └── 02_dados_extras.sql # Volume histórico (3000 vendas 2024-2026, 300 clientes)
-└── README.md            # Este arquivo
+├── docker-compose.yml       # Orquestração dos serviços (MySQL 8.0 + Metabase)
+├── .env                     # Variáveis de ambiente locais (opcional)
+├── init/                    # Scripts SQL executados automaticamente no primeiro boot
+│   ├── 01_oltp.sql          # Dados operacionais base (vendas_db, logistica_db, financeiro_db)
+│   ├── 02_dados_extras.sql  # Volume histórico complementar (3000 vendas, 300 clientes)
+│   ├── 03_criar_dw.sql      # DDL do Data Warehouse dw_vendas (Star Schema)
+│   └── 04_etl_carga.sql     # Pipeline ETL (transformação e carga em dw_vendas)
+├── metabase-data/           # Base H2 persistida com dashboards e gráficos prontos
+│   └── metabase.db/
+└── README.md                # Este documento de instruções
 ```
 
-## Ordem de execução dos scripts SQL
+## Relação com os Scripts de Entrega (`../solucao/`)
 
-Após o ambiente subir, executar na seguinte ordem dentro do MySQL:
+Os arquivos dentro da pasta `../solucao/` são os artefatos oficiais da entrega da atividade:
 
-```
-1. init/01_oltp.sql          → criado automaticamente pelo container (dados base)
-2. init/02_dados_extras.sql  → criado automaticamente pelo container (volume histórico)
-3. solucao/01_criar_dw.sql   → cria o banco dw_vendas e as tabelas dimensionais
-4. solucao/02_etl_carga.sql  → carrega as dimensões e a tabela fato
-5. solucao/03_consultas_analiticas.sql → as 3 visões analíticas
-```
-
-Para conectar ao MySQL pelo terminal:
-
-```bash
-docker exec -it oltp_dw_mysql mysql -uroot -proot
-```
+| Arquivo | Descrição |
+|---|---|
+| `solucao/01_criar_dw.sql` | Script DDL original de criação do DW `dw_vendas` e modelo Star Schema |
+| `solucao/02_etl_carga.sql` | Script original do pipeline de Extração, Transformação e Carga (ETL) |
+| `solucao/03_consultas_analiticas.sql` | 5 visões analíticas (3 obrigatórias da atividade + 2 bônus executivas) |
+| `solucao/diagrama_star_schema.png` | Diagrama em alta resolução do modelo Star Schema |
+| `solucao/diagrama_star_schema.puml` | Código-fonte do diagrama em PlantUML |
