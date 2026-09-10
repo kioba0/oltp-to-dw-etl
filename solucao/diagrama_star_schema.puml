@@ -1,0 +1,87 @@
+@startuml star_schema_dw_vendas
+
+!theme plain
+skinparam linetype ortho
+skinparam roundcorner 8
+skinparam shadowing false
+skinparam handwritten false
+
+skinparam entity {
+    BackgroundColor #FFFFFF
+    BorderColor #1A365D
+    FontColor #1A202C
+    FontSize 12
+    FontStyle normal
+    HeaderBackgroundColor #EDF2F7
+}
+
+skinparam arrow {
+    Color #2B6CB0
+    Thickness 1.5
+}
+
+title **Data Warehouse dw_vendas — Esquema Estrela (Star Schema)**
+
+' ──────────────────────────────────────────────
+' ENTIDADES / TABELAS
+' ──────────────────────────────────────────────
+
+entity "**Dim_Tempo**" as Dim_Tempo << (D,#63B3ED) Dimensão >> {
+    * **sk_tempo** : INT <<PK>>
+    --
+    data_completa : DATE <<UNIQUE>>
+    dia : INT
+    mes : INT
+    nome_mes : VARCHAR(20)
+    trimestre : INT
+    ano : INT
+}
+
+entity "**Dim_Cliente**" as Dim_Cliente << (D,#63B3ED) Dimensão >> {
+    * **sk_cliente** : INT <<PK>>
+    --
+    id_cliente_origem : INT
+    nome_cliente : VARCHAR(100)
+    cidade : VARCHAR(50)
+    estado : VARCHAR(50)
+}
+
+entity "**Dim_Produto**" as Dim_Produto << (D,#63B3ED) Dimensão >> {
+    * **sk_produto** : INT <<PK>>
+    --
+    id_produto_origem : INT
+    nome_produto : VARCHAR(100)
+    categoria : VARCHAR(50)
+    preco : DECIMAL(10,2)
+}
+
+entity "**Fato_Vendas**" as Fato_Vendas << (F,#F6AD55) Fato >> {
+    * **id_fato** : INT <<PK>>
+    --
+    * **sk_cliente** : INT <<FK>>
+    * **sk_produto** : INT <<FK>>
+    * **sk_tempo** : INT <<FK>>
+    --
+    quantidade : INT [Métrica]
+    valor_total : DECIMAL(10,2) [Métrica]
+}
+
+' ──────────────────────────────────────────────
+' RELACIONAMENTOS (Star Schema: 1 Dimensão para N Fatos)
+' ──────────────────────────────────────────────
+
+Dim_Tempo   ||--o{ Fato_Vendas : "1 : N\n(sk_tempo)"
+Dim_Cliente ||--o{ Fato_Vendas : "1 : N\n(sk_cliente)"
+Dim_Produto ||--o{ Fato_Vendas : "1 : N\n(sk_produto)"
+
+' ──────────────────────────────────────────────
+' LEGENDA
+' ──────────────────────────────────────────────
+legend right
+  |<#F6AD55>  | **Tabela Fato** (Métricas e chaves estrangeiras) |
+  |<#63B3ED>  | **Tabelas Dimensão** (Contexto e atributos analíticos) |
+  | **PK**    | Primary Key (Surrogate Key gerada no DW) |
+  | **FK**    | Foreign Key (Referência às dimensões) |
+endlegend
+
+@enduml

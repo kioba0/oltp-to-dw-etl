@@ -29,7 +29,7 @@ FROM
 GROUP BY
   `Dim Cliente - Sk Cliente`.`estado`
 ORDER BY
-  `Dim Cliente - Sk Cliente`.`estado` ASC
+  `Dim Cliente - Sk Cliente`.`estado` ASC;
 
 
 -- =====================================================
@@ -56,7 +56,7 @@ FROM
 GROUP BY
   `Dim Produto - Sk Produto`.`categoria`
 ORDER BY
-  `Dim Produto - Sk Produto`.`categoria` ASC
+  `Dim Produto - Sk Produto`.`categoria` ASC;
 
 
 -- =====================================================
@@ -103,4 +103,126 @@ ORDER BY
       '-01'
     ),
     '%Y-%m-%d'
-  ) ASC
+  ) ASC;
+
+
+-- =====================================================
+-- SUGESTÕES ADICIONAIS DE CONSULTAS PARA O METABASE
+-- =====================================================
+
+-- =====================================================
+-- Visão 4: Indicadores Executivos Globais (KPI Cards / Smart Numbers)
+-- Objetivo: Alimentar cartões de destaque no topo do dashboard
+-- Gráfico Metabase: Number (Cartão)
+-- =====================================================
+SELECT 
+    COUNT(fv.id_fato) AS total_transacoes,
+    SUM(fv.quantidade) AS total_itens_vendidos,
+    SUM(fv.valor_total) AS faturamento_global,
+    ROUND(SUM(fv.valor_total) / COUNT(fv.id_fato), 2) AS ticket_medio_transacao,
+    ROUND(SUM(fv.valor_total) / SUM(fv.quantidade), 2) AS preco_medio_por_item,
+    COUNT(DISTINCT fv.sk_cliente) AS total_clientes_unicos
+FROM dw_vendas.Fato_Vendas fv;
+
+
+-- =====================================================
+-- Visão 5: Top 10 Produtos Mais Rentáveis
+-- Objetivo: Identificar os produtos de maior impacto no faturamento
+-- Gráfico Metabase: Bar (Horizontal) ou Table
+-- =====================================================
+SELECT 
+    dp.nome_produto,
+    dp.categoria,
+    SUM(fv.quantidade) AS total_unidades_vendidas,
+    SUM(fv.valor_total) AS faturamento_total
+FROM dw_vendas.Fato_Vendas fv
+JOIN dw_vendas.Dim_Produto dp ON fv.sk_produto = dp.sk_produto
+GROUP BY dp.sk_produto, dp.nome_produto, dp.categoria
+ORDER BY faturamento_total DESC
+LIMIT 10;
+
+
+-- =====================================================
+-- Visão 6: Top 10 Clientes com Maior Volume de Compra (Clientes VIP)
+-- Objetivo: Reconhecer os clientes mais valiosos para ações comerciais
+-- Gráfico Metabase: Bar (Horizontal) ou Table
+-- =====================================================
+SELECT 
+    dc.nome_cliente,
+    CONCAT(dc.cidade, ' - ', dc.estado) AS localizacao,
+    COUNT(fv.id_fato) AS total_pedidos,
+    SUM(fv.quantidade) AS total_itens,
+    SUM(fv.valor_total) AS faturamento_total
+FROM dw_vendas.Fato_Vendas fv
+JOIN dw_vendas.Dim_Cliente dc ON fv.sk_cliente = dc.sk_cliente
+GROUP BY dc.sk_cliente, dc.nome_cliente, dc.cidade, dc.estado
+ORDER BY faturamento_total DESC
+LIMIT 10;
+
+
+-- =====================================================
+-- Visão 7: Top 10 Cidades em Faturamento
+-- Objetivo: Analisar as cidades mais representativas dentro dos estados
+-- Gráfico Metabase: Bar (Horizontal)
+-- =====================================================
+SELECT 
+    dc.cidade,
+    dc.estado,
+    CONCAT(dc.cidade, ' (', dc.estado, ')') AS cidade_uf,
+    COUNT(fv.id_fato) AS total_compras,
+    SUM(fv.valor_total) AS faturamento_total
+FROM dw_vendas.Fato_Vendas fv
+JOIN dw_vendas.Dim_Cliente dc ON fv.sk_cliente = dc.sk_cliente
+GROUP BY dc.cidade, dc.estado
+ORDER BY faturamento_total DESC
+LIMIT 10;
+
+
+-- =====================================================
+-- Visão 8: Evolução Temporal de Faturamento por Categoria (Multi-série)
+-- Objetivo: Observar crescimento, sazonalidade e perda de mercado por categoria
+-- Gráfico Metabase: Area (Stacked) ou Line
+-- =====================================================
+SELECT 
+    STR_TO_DATE(CONCAT(DATE_FORMAT(dt.data_completa, '%Y-%m'), '-01'), '%Y-%m-%d') AS mes_ano,
+    dp.categoria,
+    SUM(fv.valor_total) AS faturamento_total,
+    SUM(fv.quantidade) AS total_itens
+FROM dw_vendas.Fato_Vendas fv
+JOIN dw_vendas.Dim_Tempo dt ON fv.sk_tempo = dt.sk_tempo
+JOIN dw_vendas.Dim_Produto dp ON fv.sk_produto = dp.sk_produto
+GROUP BY mes_ano, dp.categoria
+ORDER BY mes_ano ASC, faturamento_total DESC;
+
+
+-- =====================================================
+-- Visão 9: Comparativo Trimestral de Faturamento (Sazonalidade Q1 a Q4)
+-- Objetivo: Identificar tendências sazonais e crescimento ano a ano
+-- Gráfico Metabase: Bar (Barras agrupadas por ano)
+-- =====================================================
+SELECT 
+    dt.ano,
+    dt.trimestre,
+    CONCAT('T', dt.trimestre, '/', dt.ano) AS trimestre_ano,
+    SUM(fv.valor_total) AS faturamento_total,
+    SUM(fv.quantidade) AS total_itens
+FROM dw_vendas.Fato_Vendas fv
+JOIN dw_vendas.Dim_Tempo dt ON fv.sk_tempo = dt.sk_tempo
+GROUP BY dt.ano, dt.trimestre, trimestre_ano
+ORDER BY dt.ano ASC, dt.trimestre ASC;
+
+
+-- =====================================================
+-- Visão 10: Distribuição de Faturamento por Dia do Mês
+-- Objetivo: Identificar dias de pico de compra ao longo do mês (efeito salário/quinto dia útil)
+-- Gráfico Metabase: Line ou Bar
+-- =====================================================
+SELECT 
+    dt.dia,
+    COUNT(fv.id_fato) AS total_vendas,
+    SUM(fv.valor_total) AS faturamento_total,
+    ROUND(AVG(fv.valor_total), 2) AS ticket_medio
+FROM dw_vendas.Fato_Vendas fv
+JOIN dw_vendas.Dim_Tempo dt ON fv.sk_tempo = dt.sk_tempo
+GROUP BY dt.dia
+ORDER BY dt.dia ASC;

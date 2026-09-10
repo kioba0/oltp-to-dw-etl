@@ -196,6 +196,7 @@
 |---|---|
 | `solucao/01_criar_dw.sql` | DDL completo do banco `dw_vendas` (4 tabelas) |
 | `solucao/02_etl_carga.sql` | Script ETL de carga das dimensões e da fato |
-| `solucao/03_consultas_analiticas.sql` | 3 queries analíticas sobre o DW |
+| `solucao/03_consultas_analiticas.sql` | Consultas analíticas sobre o DW (visões principais + sugestões Metabase) |
 | `solucao/diagrama_star_schema.png` | Diagrama visual do Star Schema |
+| `solucao/diagrama_star_schema.puml` | Código-fonte do diagrama em PlantUML |
 | `docker/` | Ambiente reproduzível para execução e visualização no Metabase |
