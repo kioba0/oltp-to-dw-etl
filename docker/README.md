@@ -67,7 +67,7 @@ Para inspecionar o Data Warehouse e testar as visões analíticas implementadas 
 docker exec -it oltp_dw_mysql mysql -uroot -proot dw_vendas
 ```
 
-**Executar o script com as 5 visões analíticas de uma vez:**
+**Executar o script com as 6 visões analíticas de uma vez:**
 ```bash
 docker exec -i oltp_dw_mysql mysql -uroot -proot dw_vendas < ../solucao/03_consultas_analiticas.sql
 ```
@@ -110,6 +110,6 @@ Os arquivos dentro da pasta `../solucao/` são os artefatos oficiais da entrega 
 |---|---|
 | `solucao/01_criar_dw.sql` | Script DDL original de criação do DW `dw_vendas` e modelo Star Schema |
 | `solucao/02_etl_carga.sql` | Script original do pipeline de Extração, Transformação e Carga (ETL) |
-| `solucao/03_consultas_analiticas.sql` | 5 visões analíticas (3 obrigatórias da atividade + 2 bônus executivas) |
+| `solucao/03_consultas_analiticas.sql` | 6 visões analíticas (3 obrigatórias da atividade + 3 bônus executivas) |
 | `solucao/diagrama_star_schema.png` | Diagrama em alta resolução do modelo Star Schema |
 | `solucao/diagrama_star_schema.puml` | Código-fonte do diagrama em PlantUML |

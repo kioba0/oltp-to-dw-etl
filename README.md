@@ -75,7 +75,7 @@ O painel já vem pré-configurado com as visualizações das 5 consultas analít
 
 As consultas analíticas oficiais da entrega acadêmica estão localizadas em `solucao/03_consultas_analiticas.sql`.
 
-Para rodar todas as consultas diretamente no banco analítico:
+Para rodar o script com as 6 visões analíticas de uma vez:
 
 ```bash
 docker exec -i oltp_dw_mysql mysql -uroot -proot dw_vendas < solucao/03_consultas_analiticas.sql
@@ -93,6 +93,7 @@ docker exec -it oltp_dw_mysql mysql -uroot -proot dw_vendas
 * **Visão 3 — Faturamento por Período (Mês e Ano):** Agregação cronológica mensal de 2024 a 2026, permitindo análise de sazonalidade e tendências.
 * **Visão 4 (Executiva) — Indicadores Globais:** Cartões com Total de Transações, Unidades Vendidas, Faturamento Total, Ticket Médio e Preço Médio por Item.
 * **Visão 5 (Executiva) — Top 10 Produtos Mais Rentáveis:** Ranking dos produtos com maior geração de receita líquida.
+* **Visão 6 (Executiva) — Taxa de Recompra e Frequência:** Distribuição e segmentação da base de clientes por faixas de fidelidade (únicos, recorrentes e super fiéis) com faturamento associado.
 
 ---
 
@@ -110,7 +111,7 @@ atividade_1/
 ├── solucao/                         # Artefatos oficiais solicitados para entrega
 │   ├── 01_criar_dw.sql              # DDL do DW dw_vendas e Star Schema
 │   ├── 02_etl_carga.sql             # Pipeline de carga ETL com resolução de SKs
-│   ├── 03_consultas_analiticas.sql  # 5 visões analíticas sobre o DW
+│   ├── 03_consultas_analiticas.sql  # 6 visões analíticas sobre o DW
 │   ├── diagrama_star_schema.png     # Diagrama Star Schema em alta resolução (300 DPI)
 │   └── diagrama_star_schema.puml    # Código-fonte do diagrama em PlantUML
 │

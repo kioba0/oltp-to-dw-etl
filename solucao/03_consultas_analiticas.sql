@@ -124,3 +124,29 @@ JOIN dw_vendas.Dim_Produto dp ON fv.sk_produto = dp.sk_produto
 GROUP BY dp.sk_produto, dp.nome_produto, dp.categoria
 ORDER BY faturamento_total DESC
 LIMIT 10;
+
+
+-- =====================================================
+-- Visão 6: Taxa de Recompra e Distribuição de Frequência de Clientes
+-- =====================================================
+WITH compras_por_cliente AS (
+    SELECT 
+        sk_cliente,
+        COUNT(id_fato) AS qtd_compras,
+        SUM(valor_total) AS total_gasto
+    FROM dw_vendas.Fato_Vendas
+    GROUP BY sk_cliente
+)
+SELECT 
+    CASE 
+        WHEN qtd_compras = 1 THEN '1 compra (Cliente Único)'
+        WHEN qtd_compras = 2 THEN '2 compras'
+        WHEN qtd_compras BETWEEN 3 AND 5 THEN '3 a 5 compras (Recorrente)'
+        ELSE 'Mais de 5 compras (Super Fiel)'
+    END AS faixa_frequencia,
+    COUNT(*) AS total_clientes,
+    ROUND(COUNT(*) * 100.0 / (SELECT COUNT(DISTINCT sk_cliente) FROM dw_vendas.Fato_Vendas), 2) AS percentual_base_clientes,
+    ROUND(SUM(total_gasto), 2) AS faturamento_gerado
+FROM compras_por_cliente
+GROUP BY faixa_frequencia
+ORDER BY total_clientes DESC;

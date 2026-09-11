@@ -239,7 +239,7 @@ atividade_1/
 └── solucao/                         # Artefatos da entrega acadêmica
     ├── 01_criar_dw.sql              # DDL do banco dw_vendas
     ├── 02_etl_carga.sql             # ETL: carga das dimensões e da fato
-    ├── 03_consultas_analiticas.sql  # 5 visões analíticas (3 obrigatórias + 2 executivas)
+    ├── 03_consultas_analiticas.sql  # 6 visões analíticas (3 obrigatórias + 3 executivas)
     ├── diagrama_star_schema.png     # Diagrama visual do Star Schema (300 DPI)
     └── diagrama_star_schema.puml    # Código-fonte do diagrama em PlantUML
 ```
