@@ -69,7 +69,7 @@ docker exec -it oltp_dw_mysql mysql -uroot -proot dw_vendas
 
 **Executar o script com as 6 visões analíticas de uma vez:**
 ```bash
-docker exec -i oltp_dw_mysql mysql -uroot -proot dw_vendas < ../solucao/03_consultas_analiticas.sql
+docker exec -i oltp_dw_mysql mysql -uroot -proot dw_vendas < ../caso_1/solucao/03_consultas_analiticas.sql
 ```
 
 ### 6. Parar o ambiente

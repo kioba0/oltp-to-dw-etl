@@ -1,127 +1,83 @@
-# Data Warehouse & ETL: De Silos Operacionais (OLTP) ao Esquema Estrela (OLAP)
+# Data Warehouse & ETL: Integração de Silos e Áreas de Convergência
 
 > **Disciplina:** Tópicos Especiais em Banco de Dados  
 > **Instituição:** Universidade do Estado da Bahia (UNEB)  
-> **Atividade 1:** Modelagem Dimensional, Pipeline de ETL e Análise de Dados  
+> **Atividade 1:** Modelagem Dimensional, Pipeline de ETL e Análise de Dados (Casos 1 e 1.1)
 
 ---
 
-## 📌 Visão Geral
+## 📌 Visão Geral do Repositório
 
-Este repositório contém a implementação completa de um **Data Warehouse (DW)** para consolidação e análise do processo de negócio de **Vendas**, integrando bancos relacionais transacionais (OLTP) heterogêneos em um modelo dimensional **Star Schema (Esquema Estrela)**, acompanhado de pipeline **ETL (Extract, Transform, Load)** e dashboards interativos no **Metabase**.
+Este repositório reúne a implementação prática de **Engenharia de Dados, Modelagem Dimensional (Star Schema) e Business Intelligence (Metabase)** desenvolvida para a Atividade 1 da disciplina.
 
-### Pilares Conceituais Aplicados:
-* **Orientação por Assunto:** Isolamento do processo analítico de vendas no banco `dw_vendas`.
-* **Integração:** Padronização e resolução de dados de clientes, produtos e transações.
-* **Não-Volatilidade:** Dados carregados como registros históricos consolidados.
-* **Variação Temporal:** Granularidade diária decomposta em dimensões temporais analíticas (dia, mês, trimestre, ano).
-* **Surrogate Keys (SK):** Desacoplamento entre os identificadores naturais dos sistemas operacionais e o modelo analítico.
+O projeto está estruturado em dois estudos de caso complementares:
+
+1. **[Estudo de Caso 1](caso_1/):** Focado na consolidação do processo de **Vendas** a partir de três silos operacionais relacionais (`vendas_db`, `logistica_db`, `financeiro_db`) em um Data Warehouse analítico (`dw_vendas`).
+2. **[Estudo de Caso 1.1](caso_1.1/):** Focado no mapeamento e integração de **8 Áreas de Convergência (A.C.)** e suas atividades operacionais em uma **Mega Campanha Promocional Tech (Black Friday / Flash Sale)** de alta demanda concorrente.
 
 ---
 
-## 🏛️ Modelo Dimensional (Star Schema)
+## 📁 Estrutura Modular do Projeto
 
-A modelagem dimensional foi desenhada com foco na granularidade de **cada transação de venda individual**, estruturada em torno da tabela fato central conectada a três dimensões:
-
-![Diagrama Star Schema](solucao/diagrama_star_schema.png)
-
-### Estrutura das Tabelas:
-
-1. **`Dim_Tempo` (Dimensão Temporal):**
-   * Chave Primária: `sk_tempo` (Surrogate Key, INT AUTO_INCREMENT).
-   * Atributos: `data_completa` (UNIQUE), `dia`, `mes`, `nome_mes`, `trimestre`, `ano`.
-2. **`Dim_Cliente` (Dimensão de Clientes):**
-   * Chave Primária: `sk_cliente` (Surrogate Key, INT AUTO_INCREMENT).
-   * Atributos: `id_cliente_origem` (rastreabilidade OLTP), `nome_cliente`, `cidade`, `estado`.
-3. **`Dim_Produto` (Dimensão de Produtos):**
-   * Chave Primária: `sk_produto` (Surrogate Key, INT AUTO_INCREMENT).
-   * Atributos: `id_produto_origem` (rastreabilidade OLTP), `nome_produto`, `categoria`, `preco`.
-4. **`Fato_Vendas` (Tabela Fato Central):**
-   * Chave Primária: `id_fato` (INT AUTO_INCREMENT).
-   * Chaves Estrangeiras: `sk_tempo`, `sk_cliente`, `sk_produto`.
-   * Métricas Aditivas: `quantidade` (unidades vendidas) e `valor_total` (faturamento em R$).
+```
+atividade_1/
+├── README.md                           # Visão geral e índice mestre (este arquivo)
+│
+├── materiais/                          # Referências e enunciados do professor
+│   ├── caso_1/                         # HTML interativo, instrucoes_caso_1.txt, mysql_operational_dbs.sql
+│   └── caso_1.1/                       # Documento docx, estudo_de_caso_1.1.md, anotacoes_quadro.md
+│
+├── caso_1/                             # Estudo de Caso 1: Vendas e Star Schema [CONCLUÍDO]
+│   ├── CONTEXTO.md                     # Fundamentação teórica e regras de negócio
+│   ├── CHECKLIST.md                    # Checklist com status de todas as fases (100%)
+│   ├── solucao/                        # Scripts SQL oficiais e diagrama
+│   │   ├── 01_criar_dw.sql             # DDL do banco dw_vendas
+│   │   ├── 02_etl_carga.sql            # Pipeline de ETL resolvendo Surrogate Keys
+│   │   ├── 03_consultas_analiticas.sql # 6 visões analíticas (3 obrigatórias + 3 executivas)
+│   │   ├── diagrama_star_schema.png    # Diagrama em alta resolução (300 DPI)
+│   │   └── diagrama_star_schema.puml   # Código-fonte em PlantUML
+│
+├── caso_1.1/                           # Estudo de Caso 1.1: Áreas de Convergência Tech [EM ANDAMENTO]
+│   ├── CONTEXTO.md                     # 8 A.C.s, Atividades, Métricas/KPIs e Conectores
+│   ├── CHECKLIST.md                    # Roteiro de implementação passo a passo
+│   ├── solucao/                        # Scripts SQL expandidos e cargas
+│   └── diagramas/                      # Mapa das 8 A.C.s e Esquema Estrela Integrado
+│
+└── docker/                             # Infraestrutura local compartilhada (Zero-Touch)
+    ├── docker-compose.yml              # Orquestração do MySQL 8.0 (3306) + Metabase (3000)
+    ├── README.md                       # Guia de inicialização e credenciais
+    ├── metabase-data/                  # Base de metadados H2 com dashboards pré-configurados
+    └── init/                           # Cargas automáticas executadas no primeiro boot
+        ├── 01_oltp.sql                 # Silos operacionais (vendas_db, logistica_db, financeiro_db)
+        ├── 02_dados_extras.sql         # 3.000 transações históricas (2024-2026) e 300 clientes
+        ├── 03_criar_dw.sql             # Criação do banco analítico dw_vendas
+        └── 04_etl_carga.sql            # Pipeline de carga inicial
+```
 
 ---
 
-## 🚀 Execução Rápida via Docker (Zero-Touch)
+## 🚀 Execução Rápida do Ambiente (Docker)
 
-O ambiente foi totalmente conteinerizado com **Docker Compose**, unindo o **MySQL 8.0** e o **Metabase**. A inicialização é **100% automatizada**: ao subir o container, o banco transacional é carregado, o DW é criado e populado, e o Metabase já conecta aos dashboards prontos.
-
-### 1. Iniciar o ambiente
+O ambiente foi configurado para inicialização **100% automatizada** via Docker Compose:
 
 ```bash
 cd docker/
 docker compose up -d
 ```
 
-### 2. O que acontece automaticamente na primeira execução:
-1. `init/01_oltp.sql`: Cria e popula as bases relacionais operacionais (`vendas_db`, `logistica_db`, `financeiro_db`).
-2. `init/02_dados_extras.sql`: Injeta massa histórica volumosa (3.000 transações de 2024 a 2026 e 300 clientes).
-3. `init/03_criar_dw.sql`: Executa o DDL criando o banco `dw_vendas` e as tabelas dimensionais.
-4. `init/04_etl_carga.sql`: Executa o pipeline de ETL resolvendo Surrogate Keys via JOINs e validando a integridade.
-
-### 3. Acessar o Dashboard (Metabase)
-
-Abra no navegador: **[http://localhost:3000](http://localhost:3000)**
-
-* **E-mail:** `cerveja123@gmail.com`
-* **Senha:** `cerveja123`
-
-O painel já vem pré-configurado com as visualizações das 5 consultas analíticas, filtros e cartões executivos.
+- **MySQL 8.0:** Disponível na porta `localhost:3306` (usuário `root`, senha `root`).
+- **Metabase BI:** Disponível em **[http://localhost:3000](http://localhost:3000)**.
+  - **Login:** `cerveja123@gmail.com`
+  - **Senha:** `cerveja123`
 
 ---
 
-## 📊 Consultas Analíticas (OLAP via Terminal)
+## 📊 Síntese dos Casos de Estudo
 
-As consultas analíticas oficiais da entrega acadêmica estão localizadas em `solucao/03_consultas_analiticas.sql`.
-
-Para rodar o script com as 6 visões analíticas de uma vez:
-
-```bash
-docker exec -i oltp_dw_mysql mysql -uroot -proot dw_vendas < solucao/03_consultas_analiticas.sql
-```
-
-Ou conectar-se interativamente:
-
-```bash
-docker exec -it oltp_dw_mysql mysql -uroot -proot dw_vendas
-```
-
-### Visões Implementadas:
-* **Visão 1 — Total de Vendas por Estado:** Agrupamento por estado do cliente (`Dim_Cliente.estado`), consolidando unidades vendidas e faturamento total.
-* **Visão 2 — Total de Vendas por Categoria:** Segmentação por categoria do produto (`Dim_Produto.categoria`), revelando as linhas com maior receita.
-* **Visão 3 — Faturamento por Período (Mês e Ano):** Agregação cronológica mensal de 2024 a 2026, permitindo análise de sazonalidade e tendências.
-* **Visão 4 (Executiva) — Indicadores Globais:** Cartões com Total de Transações, Unidades Vendidas, Faturamento Total, Ticket Médio e Preço Médio por Item.
-* **Visão 5 (Executiva) — Top 10 Produtos Mais Rentáveis:** Ranking dos produtos com maior geração de receita líquida.
-* **Visão 6 (Executiva) — Taxa de Recompra e Frequência:** Distribuição e segmentação da base de clientes por faixas de fidelidade (únicos, recorrentes e super fiéis) com faturamento associado.
-
----
-
-## 📁 Estrutura do Repositório e Entregáveis
-
-```
-atividade_1/
-├── README.md                        # Guia principal e documentação do projeto
-├── CONTEXTO.md                      # Detalhamento teórico dos silos OLTP e regras de negócio
-├── CHECKLIST.md                     # Checklist com status de todas as fases implementadas
-├── instrucoes.txt                   # Enunciado oficial da atividade
-├── Estudo de Caso 1_v2.html         # Material de apoio visual fornecido pelo professor
-├── mysql_operational_dbs.sql        # Script OLTP base original
-│
-├── solucao/                         # Artefatos oficiais solicitados para entrega
-│   ├── 01_criar_dw.sql              # DDL do DW dw_vendas e Star Schema
-│   ├── 02_etl_carga.sql             # Pipeline de carga ETL com resolução de SKs
-│   ├── 03_consultas_analiticas.sql  # 6 visões analíticas sobre o DW
-│   ├── diagrama_star_schema.png     # Diagrama Star Schema em alta resolução (300 DPI)
-│   └── diagrama_star_schema.puml    # Código-fonte do diagrama em PlantUML
-│
-└── docker/                          # Infraestrutura de reprodução do ambiente
-    ├── docker-compose.yml           # Orquestração do MySQL 8.0 e Metabase
-    ├── README.md                    # Documentação técnica e operacional do ambiente Docker
-    ├── metabase-data/               # Base de metadados H2 persistida com os dashboards
-    └── init/                        # Carga e setup automático na inicialização do MySQL
-        ├── 01_oltp.sql
-        ├── 02_dados_extras.sql
-        ├── 03_criar_dw.sql
-        └── 04_etl_carga.sql
-```
+| Critério | Caso 1 (Concluído) | Caso 1.1 (Em Andamento) |
+|---|---|---|
+| **Processo Central** | Venda de Produtos | Campanha Promocional Integrada (Black Friday Tech) |
+| **Escopo** | Silos OLTP básicos $\rightarrow$ DW | 8 Áreas de Convergência integradas ponta a ponta |
+| **Granularidade** | Transação individual de venda | Pedido, expedição e abastecimento com métricas de tempo e custo |
+| **Indicadores** | Faturamento por UF, Categoria, Período, Ticket Médio | OTIF, ROAS, Produtividade RH, Lead Time de Entrega, Ruptura, Margem Líquida |
+| **Documentação** | [`caso_1/CONTEXTO.md`](caso_1/CONTEXTO.md) | [`caso_1.1/CONTEXTO.md`](caso_1.1/CONTEXTO.md) |
