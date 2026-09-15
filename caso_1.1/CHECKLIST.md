@@ -51,7 +51,7 @@
   - Definir eventos disparadores (fechamento comercial, recebimento em doca, aprovação de pagamento, despacho e entrega).
   - Tabela de conectores e gatilhos documentada em [`CONTEXTO.md`](CONTEXTO.md).
 
-- [ ] **2.2 — Geração do Diagrama Visual de Áreas de Convergência**
+- [x] **2.2 — Geração do Diagrama Visual de Áreas de Convergência**
   - Desenhar o mapa conceitual de fluxo e interações em PlantUML (`diagramas/mapa_areas_convergencia.puml`).
   - Exportar imagem em alta resolução (`diagramas/mapa_areas_convergencia.png`).
 
@@ -59,7 +59,7 @@
 
 ## Fase 3 — Modelagem do Data Warehouse Integrado (Tarefa 3)
 
-- [ ] **3.1 — Especificação do Modelo Dimensional Alvo**
+- [x] **3.1 — Especificação do Modelo Dimensional Alvo**
   - Avaliar tabelas de dimensão necessárias:
     - `Dim_Tempo` (data, dia, mês, trimestre, ano, sazonalidade).
     - `Dim_Cliente` (estado, cidade, nome).
@@ -74,11 +74,11 @@
     - **`Fato_Despesas_Operacionais` (Apoio Financeiro):**
       - Campos: `id_despesa_fato`, `sk_tempo`, `tipo_despesa`, `descricao`, `valor_despesa`.
 
-- [ ] **3.2 — Criação do Script DDL (`solucao/01_criar_dw_expandido.sql`)**
+- [x] **3.2 — Criação do Script DDL (`solucao/01_criar_dw_expandido.sql`)**
   - Criar o banco `dw_tech_campaign` (ou extensão de `dw_vendas`).
   - DDL com todas as tabelas de dimensões, chaves primárias (`AUTO_INCREMENT`), índices e constraints.
 
-- [ ] **3.3 — Diagrama do Esquema Estrela Integrado**
+- [x] **3.3 — Diagrama do Esquema Estrela Integrado**
   - Código em PlantUML (`diagramas/star_schema_integrado.puml`).
   - Exportação em PNG de alta resolução (`diagramas/star_schema_integrado.png`).
 
@@ -86,20 +86,20 @@
 
 ## Fase 4 — Pipeline ETL: Extração, Transformação e Carga (Tarefa 3)
 
-- [ ] **4.1 — Extração e Carga das Dimensões**
-  - Carga da `Dim_Tempo` a partir de `vendas_db.vendas` e `logistica_db.entregas`.
+- [x] **4.1 — Extração e Carga das Dimensões**
+  - Carga da `Dim_Tempo` a partir de `vendas_db.vendas`, `logistica_db.entregas`, `pagamentos`, `despesas` e `estoque`.
   - Carga da `Dim_Cliente` a partir de `vendas_db.clientes`.
   - Carga da `Dim_Produto` a partir de `vendas_db.produtos`.
   - Carga da `Dim_Fornecedor` a partir de `logistica_db.fornecedores`.
   - Carga da `Dim_Entrega` a partir de `logistica_db.entregas`.
   - Carga da `Dim_Pagamento` a partir de `financeiro_db.pagamentos`.
 
-- [ ] **4.2 — Carga da Tabela Fato com Resolução de Surrogate Keys**
+- [x] **4.2 — Carga da Tabela Fato com Resolução de Surrogate Keys**
   - Script com múltiplos `INNER JOIN` / `LEFT JOIN` unindo os 3 bancos operacionais (`vendas_db`, `logistica_db`, `financeiro_db`).
   - Resolução de todas as SKs sem deixar campos nulos.
   - Cálculo de métricas pré-agregadas (dias de entrega, flag de pontualidade).
 
-- [ ] **4.3 — Validação de Integridade do ETL (`solucao/02_etl_carga_integrada.sql`)**
+- [x] **4.3 — Validação de Integridade do ETL (`solucao/02_etl_carga_integrada.sql`)**
   - Queries de conferência de contagem de linhas e verificação de integridade referencial.
 
 ---
@@ -108,22 +108,22 @@
 
 > Arquivo: `solucao/03_consultas_metricas_ac.sql`
 
-- [ ] **5.1 — Query KPI 1 (Gerência Geral):** Taxa OTIF (% On-Time In-Full global).
-- [ ] **5.2 — Query KPI 2 (RH):** Produtividade da Equipe de Expedição.
-- [ ] **5.3 — Query KPI 3 (Marketing):** ROAS da Campanha Tech (Faturamento vs. Despesas de Mkt).
-- [ ] **5.4 — Query KPI 4 (Logística Externa):** Lead Time Médio de Entrega e Pontualidade por UF.
-- [ ] **5.5 — Query KPI 5 (Logística Interna):** Tempo Médio de Reposição por Fornecedor (Lead Time de Entrada).
-- [ ] **5.6 — Query KPI 6 (Produção/Operações):** Taxa de Ruptura de Estoque por Categoria de Produto.
-- [ ] **5.7 — Query KPI 7 (Finanças):** Margem de Contribuição Líquida por Linha de Produto.
-- [ ] **5.8 — Query KPI 8 (Comercial):** Grau de Concentração de Fornecimento por Fornecedor Parceiro.
+- [x] **5.1 — Query KPI 1 (Gerência Geral):** Taxa OTIF (% On-Time In-Full global).
+- [x] **5.2 — Query KPI 2 (RH):** Produtividade da Equipe de Expedição.
+- [x] **5.3 — Query KPI 3 (Marketing):** ROAS da Campanha Tech (Faturamento vs. Despesas de Mkt).
+- [x] **5.4 — Query KPI 4 (Logística Externa):** Lead Time Médio de Entrega e Pontualidade por UF.
+- [x] **5.5 — Query KPI 5 (Logística Interna):** Tempo Médio de Reposição por Fornecedor (Lead Time de Entrada).
+- [x] **5.6 — Query KPI 6 (Produção/Operações):** Taxa de Ruptura de Estoque por Categoria de Produto.
+- [x] **5.7 — Query KPI 7 (Finanças):** Margem de Contribuição Líquida por Linha de Produto.
+- [x] **5.8 — Query KPI 8 (Comercial):** Grau de Concentração de Fornecimento por Fornecedor Parceiro.
 
 ---
 
 ## Fase 6 — Revisão Final, Documentação e Commit
 
-- [ ] **6.1 — Validação Ponta a Ponta**
-  - Execução dos scripts SQL em ordem e conferência dos resultados.
-- [ ] **6.2 — Atualização do `README.md` Principal**
+- [x] **6.1 — Validação Ponta a Ponta**
+  - Execução dos scripts SQL em ordem e conferência dos resultados (0 erros, 3010 registros integrados no DW dw_tech_campaign).
+- [x] **6.2 — Atualização do `README.md` Principal**
   - Documentação da entrega do Caso 1 e Caso 1.1 na raiz do repositório.
-- [ ] **6.3 — Commit e Sincronização no GitHub**
+- [x] **6.3 — Commit e Sincronização no GitHub**
   - Commit estruturado no git seguindo convenção SemVer / Conventional Commits.

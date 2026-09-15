@@ -1,0 +1,141 @@
+@startuml star_schema_dw_tech_campaign
+!theme plain
+skinparam linetype ortho
+skinparam roundcorner 8
+skinparam shadowing false
+skinparam nodesep 50
+skinparam ranksep 60
+
+skinparam entity {
+    BackgroundColor #FFFFFF
+    BorderColor #1E3A8A
+    FontColor #0F172A
+    FontSize 11
+    FontStyle normal
+    HeaderBackgroundColor #F1F5F9
+}
+
+skinparam arrow {
+    Color #2563EB
+    Thickness 1.5
+    FontSize 10
+}
+
+title **Data Warehouse dw_tech_campaign — Esquema Dimensional (Constelação de Fatos)**\nIntegração de Vendas, Logística e Finanças
+
+' ─────────────────────────────────────────────────────────────
+' TABELAS DIMENSÃO (CONFORMADAS)
+' ─────────────────────────────────────────────────────────────
+
+entity "**Dim_Tempo**" as Dim_Tempo << (D,#93C5FD) Dimensão Conformada >> {
+    * **sk_tempo** : INT <<PK>>
+    --
+    data_completa : DATE <<UNIQUE>>
+    dia : INT
+    mes : INT
+    nome_mes : VARCHAR(20)
+    trimestre : INT
+    ano : INT
+    dia_semana : VARCHAR(20)
+    eh_fim_de_semana : BOOLEAN
+}
+
+entity "**Dim_Cliente**" as Dim_Cliente << (D,#93C5FD) Dimensão >> {
+    * **sk_cliente** : INT <<PK>>
+    --
+    id_cliente_origem : INT
+    nome_cliente : VARCHAR(100)
+    cidade : VARCHAR(50)
+    estado : VARCHAR(50)
+}
+
+entity "**Dim_Produto**" as Dim_Produto << (D,#93C5FD) Dimensão >> {
+    * **sk_produto** : INT <<PK>>
+    --
+    id_produto_origem : INT
+    nome_produto : VARCHAR(100)
+    categoria : VARCHAR(50)
+    preco : DECIMAL(10,2)
+}
+
+entity "**Dim_Fornecedor**" as Dim_Fornecedor << (D,#93C5FD) Dimensão >> {
+    * **sk_fornecedor** : INT <<PK>>
+    --
+    id_fornecedor_origem : INT
+    nome_fornecedor : VARCHAR(100)
+    contato : VARCHAR(100)
+}
+
+entity "**Dim_Entrega**" as Dim_Entrega << (D,#93C5FD) Dimensão >> {
+    * **sk_entrega** : INT <<PK>>
+    --
+    id_entrega_origem : INT
+    status_entrega : VARCHAR(50)
+}
+
+entity "**Dim_Pagamento**" as Dim_Pagamento << (D,#93C5FD) Dimensão >> {
+    * **sk_pagamento** : INT <<PK>>
+    --
+    id_pagamento_origem : INT
+    metodo_pagamento : VARCHAR(50)
+}
+
+' ─────────────────────────────────────────────────────────────
+' TABELAS FATO
+' ─────────────────────────────────────────────────────────────
+
+entity "**Fato_Vendas_Integrada**" as Fato_Vendas << (F,#FDBA74) Fato Central >> {
+    * **id_fato_venda** : INT <<PK>>
+    --
+    * **sk_cliente** : INT <<FK>>
+    * **sk_produto** : INT <<FK>>
+    * **sk_fornecedor** : INT <<FK>>
+    * **sk_tempo_venda** : INT <<FK>>
+    * **sk_tempo_entrega** : INT <<FK>>
+    * **sk_tempo_pagamento** : INT <<FK>>
+    * **sk_entrega** : INT <<FK>>
+    * **sk_pagamento** : INT <<FK>>
+    --
+    quantidade : INT [Métrica]
+    valor_total_venda : DECIMAL(10,2) [Métrica]
+    valor_pago : DECIMAL(10,2) [Métrica]
+    dias_para_entrega : INT [Métrica / SLA]
+    flag_entregue_no_prazo : BOOLEAN [KPI OTIF]
+}
+
+entity "**Fato_Despesas_Operacionais**" as Fato_Despesas << (F,#86EFAC) Fato Apoio >> {
+    * **id_fato_despesa** : INT <<PK>>
+    --
+    * **sk_tempo** : INT <<FK>>
+    id_despesa_origem : INT
+    tipo_despesa : VARCHAR(50)
+    descricao : VARCHAR(255)
+    --
+    valor_despesa : DECIMAL(10,2) [Métrica Financeira]
+}
+
+' ─────────────────────────────────────────────────────────────
+' RELACIONAMENTOS (1 : N)
+' ─────────────────────────────────────────────────────────────
+
+Dim_Cliente     ||--o{ Fato_Vendas : "sk_cliente"
+Dim_Produto     ||--o{ Fato_Vendas : "sk_produto"
+Dim_Fornecedor  ||--o{ Fato_Vendas : "sk_fornecedor"
+Dim_Entrega     ||--o{ Fato_Vendas : "sk_entrega"
+Dim_Pagamento   ||--o{ Fato_Vendas : "sk_pagamento"
+Dim_Tempo       ||--o{ Fato_Vendas : "sk_tempo_venda / entrega / pgto"
+
+Dim_Tempo       ||--o{ Fato_Despesas : "sk_tempo"
+
+' ─────────────────────────────────────────────────────────────
+' LEGENDA
+' ─────────────────────────────────────────────────────────────
+legend right
+  |<#FDBA74>  | **Fato Central** (Transação Comercial + Entrega + Recebimento) |
+  |<#86EFAC>  | **Fato de Apoio** (Despesas Operacionais, Mkt e RH) |
+  |<#93C5FD>  | **Tabelas Dimensão** (Contexto analítico com Surrogate Keys) |
+  | **PK**    | Primary Key (Surrogate Key gerada no DW) |
+  | **FK**    | Foreign Key (Integridade referencial) |
+endlegend
+
+@enduml

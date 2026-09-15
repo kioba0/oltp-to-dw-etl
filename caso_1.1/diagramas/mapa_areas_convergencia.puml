@@ -1,0 +1,95 @@
+@startuml mapa_areas_convergencia
+!theme plain
+skinparam roundcorner 10
+skinparam shadowing false
+skinparam nodesep 60
+skinparam ranksep 60
+
+skinparam package {
+    BackgroundColor #F8FAFC
+    BorderColor #CBD5E1
+    FontColor #1E293B
+    FontStyle bold
+    FontSize 13
+}
+
+skinparam card {
+    BackgroundColor #FFFFFF
+    BorderColor #94A3B8
+    FontColor #0F172A
+    FontSize 11
+}
+
+skinparam arrow {
+    Color #1E40AF
+    Thickness 1.6
+    FontColor #1E293B
+    FontSize 10
+    FontStyle bold
+}
+
+title **Estudo de Caso 1.1 — Mapa de Áreas de Convergência (A.C.), Atividades e Integrações**\nE-commerce de Tecnologia (Campanha Black Friday Tech)
+
+' ─────────────────────────────────────────────────────────────
+' PACOTES E NÓS DAS 8 ÁREAS DE CONVERGÊNCIA
+' ─────────────────────────────────────────────────────────────
+
+package "Planejamento e Suprimentos" #FEFCE8 {
+    card "**[8] Comercial**\n--\n**Atividade:** 8.1 Homologação com Fornecedores\n**KPI:** Concentração de Fornecimento (%)\n//Parcerias com Tech Supplies, Componentes Top//" as COM #FEF08A
+    card "**[5] Logística Interna**\n--\n**Atividade:** 5.1 Abastecimento de Canais\n**KPI:** Tempo Médio de Reposição (dias)\n//Recebimento e Triagem de Cargas nas Docas//" as LINT #FEF08A
+}
+
+package "Demanda e Mercado" #F0FDFA {
+    card "**[3] Marketing**\n--\n**Atividade:** 3.1 Gestão de Campanhas Tech\n**KPI:** ROAS (Receita Bruta / Despesa Mkt)\n//Tráfego Pago, Ofertas e Cupons//" as MKT #CCFBF1
+}
+
+package "Armazenagem e Operações" #FFF7ED {
+    card "**[6] Produção / Operações**\n--\n**Atividade:** 6.1 Gestão de Estoque e Ruptura\n**KPI:** Taxa de Ruptura (% Stockout)\n//Saldo Físico e Reserva para a Campanha//" as EST #FED7AA
+}
+
+package "Capacidade Humana" #EFF6FF {
+    card "**[2] RH**\n--\n**Atividade:** 2.1 Dimensionamento de Expedição\n**KPI:** Produtividade (Pedidos / Colaborador)\n//Escalas e Turnos em Picos de Venda//" as RH #BFDBFE
+}
+
+package "Fulfillment e Entrega" #F0FDF4 {
+    card "**[4] Logística Externa**\n--\n**Atividade:** 4.1 Expedição e Despacho\n**KPI:** Lead Time Médio de Entrega (dias)\n//Picking, Packing e Despacho de Pedidos//" as LEXT #BBF7D0
+}
+
+package "Controladoria Financeira" #F0FDF4 {
+    card "**[7] Finanças**\n--\n**Atividade:** 7.1 Conciliação e Margem Líquida\n**KPI:** Margem de Contribuição (R$ e %)\n//Liquidação Pix/Cartão, Custos e DRE//" as FIN #A7F3D0
+}
+
+package "Governança Executiva" #F8FAFC {
+    card "**[1] Gerência Geral**\n--\n**Atividade:** 1.1 Torre de Controle e Eficiência Global\n**KPI:** Taxa OTIF (% On-Time In-Full)\n//Supervisão e Acompanhamento Geral em Tempo Real//" as GG #FEF08A
+}
+
+' ─────────────────────────────────────────────────────────────
+' FLUXO OPERACIONAL E CONECTORES (1 a 10)
+' ─────────────────────────────────────────────────────────────
+
+COM -down-> LINT : **[1] Pedido de Compra**\n(id_fornecedor, id_produto)
+LINT -down-> EST : **[2] Entrada Física / Doca**\n(id_produto, data_entrada)
+MKT -down-> EST : **[3] Reserva de Estoque**\n(Previsão de Demanda)
+RH -down-> LEXT : **[4] Escala de Equipe**\n(Capacidade Operacional)
+EST -down-> LEXT : **[5] Liberação de Saldo**\n(Picking de Pedidos)
+LEXT -right-> FIN : **[6] Confirmação de Entrega**\n(id_venda, status_entrega)
+MKT -down-> FIN : **[7] Despesas de Tráfego**\n(Rateio de Marketing)
+
+LEXT -up-> GG : **[8] SLA de Entrega**\n(Pontualidade por UF)
+EST -up-> GG : **[9] Alerta de Ruptura**\n(Estoque Crítico)
+FIN -up-> GG : **[10] DRE & Margem Líquida**\n(Resultado Financeiro)
+
+' ─────────────────────────────────────────────────────────────
+' LEGENDA
+' ─────────────────────────────────────────────────────────────
+legend right
+  |<#FEF08A> | Comercial & Suprimentos / Gerência |
+  |<#CCFBF1> | Marketing & Demanda |
+  |<#FED7AA> | Produção / Estoque |
+  |<#BFDBFE> | RH & Capacidade |
+  |<#BBF7D0> | Logística Externa |
+  |<#A7F3D0> | Finanças |
+  | **Setas** | Conectores e gatilhos entre Áreas de Convergência |
+endlegend
+
+@enduml

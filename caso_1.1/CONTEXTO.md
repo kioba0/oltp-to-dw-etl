@@ -121,6 +121,8 @@ flowchart TD
     FIN -->|DRE / Faturamento Líquido| GG
     EST -->|Rupturas e Nível de Serviço| GG
 ```
+ 
+![Mapa de Áreas de Convergência](diagramas/mapa_areas_convergencia.png)
 
 ### Matriz de Conectores e Gatilhos:
 
@@ -161,6 +163,8 @@ O DW do Caso 1.1 consolida os silos em um modelo multidimensional (Constelação
     - Granularidade: 1 linha por registro contábil de despesa.
     - Chaves e Atributos: `id_despesa_fato` (PK), `sk_tempo` (FK), `tipo_despesa` (Fixa/Variável), `descricao`, `valor_despesa`.
     - Finalidade: Permitir o cálculo exato do ROAS (Marketing), DRE e Margem Líquida Real (Finanças).
+
+![Esquema Dimensional Integrado](diagramas/star_schema_integrado.png)
 
 ---
 
