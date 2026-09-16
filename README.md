@@ -57,15 +57,17 @@ atividade_1/
     └── init/                           # Cargas automáticas executadas no primeiro boot
         ├── 01_oltp.sql                 # Silos operacionais (vendas_db, logistica_db, financeiro_db)
         ├── 02_dados_extras.sql         # 3.000 transações históricas (2024-2026) e 300 clientes
-        ├── 03_criar_dw.sql             # Criação do banco analítico dw_vendas
-        └── 04_etl_carga.sql            # Pipeline de carga inicial
+        ├── 03_criar_dw.sql             # Criação do banco analítico dw_vendas (Caso 1)
+        ├── 04_etl_carga.sql            # Pipeline de carga inicial (Caso 1)
+        ├── 05_criar_dw_expandido.sql   # Criação do DW dw_tech_campaign (Caso 1.1)
+        └── 06_etl_carga_integrada.sql  # Pipeline de carga integrado (Caso 1.1)
 ```
 
 ---
 
 ## 🚀 Execução do Ambiente e Validação (Docker)
 
-O ambiente foi configurado para inicialização **100% automatizada** via Docker Compose:
+O ambiente foi configurado para inicialização **100% automatizada** via Docker Compose (ambos os DWs já sobem populados no primeiro boot):
 
 ```bash
 cd docker/
@@ -75,19 +77,19 @@ docker compose up -d
 - **MySQL 8.0:** Disponível na porta `localhost:3306` (usuário `root`, senha `root`).
 - **Metabase BI:** Disponível em **[http://localhost:3000](http://localhost:3000)** (`cerveja123@gmail.com` / `cerveja123`).
 
-### Como Executar os Casos de Estudo:
+### Como Executar as Consultas Analíticas:
 
-#### Executar o Estudo de Caso 1:
+#### Consultas do Estudo de Caso 1 (dw_vendas):
 ```bash
 docker exec -i oltp_dw_mysql mysql -uroot -proot dw_vendas < caso_1/solucao/03_consultas_analiticas.sql
 ```
 
-#### Executar o Estudo de Caso 1.1 (DDL, ETL e 8 Consultas Analíticas):
+#### Consultas do Estudo de Caso 1.1 (dw_tech_campaign — 8 Áreas de Convergência):
 ```bash
-docker exec -i oltp_dw_mysql mysql -uroot -proot < caso_1.1/solucao/01_criar_dw_expandido.sql
-docker exec -i oltp_dw_mysql mysql -uroot -proot < caso_1.1/solucao/02_etl_carga_integrada.sql
 docker exec -i oltp_dw_mysql mysql -uroot -proot dw_tech_campaign < caso_1.1/solucao/03_consultas_metricas_ac.sql
 ```
+
+*(Caso queira recriar os DWs manualmente a qualquer momento, os scripts DDL e ETL continuam disponíveis nas respectivas pastas `caso_1/solucao/` e `caso_1.1/solucao/`).*
 
 ---
 

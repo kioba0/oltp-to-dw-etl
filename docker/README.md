@@ -19,8 +19,10 @@ docker compose up -d
 Na **primeira execução**, o container MySQL executa automaticamente em ordem todos os scripts da pasta `init/`:
 1. `init/01_oltp.sql`: Cria e popula os 3 bancos operacionais transacionais (`vendas_db`, `logistica_db`, `financeiro_db`).
 2. `init/02_dados_extras.sql`: Carrega volume histórico complementar (3.000 vendas adicionais de 2024 a 2026 e 300 clientes).
-3. `init/03_criar_dw.sql`: Cria o Data Warehouse `dw_vendas` e a estrutura do Star Schema (dimensões e fato).
-4. `init/04_etl_carga.sql`: Executa o pipeline ETL, mapeando e resolvendo Surrogate Keys e carregando o DW.
+3. `init/03_criar_dw.sql`: Cria o Data Warehouse `dw_vendas` (Caso 1) e a estrutura do Star Schema (dimensões e fato).
+4. `init/04_etl_carga.sql`: Executa o pipeline ETL do Caso 1, carregando o `dw_vendas`.
+5. `init/05_criar_dw_expandido.sql`: Cria o DW `dw_tech_campaign` (Caso 1.1) e o modelo em Constelação de Fatos.
+6. `init/06_etl_carga_integrada.sql`: Executa o pipeline ETL integrado do Caso 1.1, resolvendo todas as SKs sem nulos.
 
 > [!NOTE]
 > Nenhum script DDL ou de carga precisa ser executado manualmente para subir a aplicação: tudo sobe pronto, consistente e integrado ao Metabase.
@@ -45,31 +47,39 @@ O ambiente já vem **pré-configurado com a conexão ao Data Warehouse e os grá
 
 ---
 
-### 4. Conectar o Metabase ao MySQL (Já configurado automaticamente)
+### 4. Conectar o Metabase ao MySQL (Já configurado para dw_vendas)
 
-A conexão com o `dw_vendas` já está salva na base versionada do Metabase (`metabase-data/`). Caso precise recriá-la manualmente:
+A conexão com o `dw_vendas` já está salva na base versionada do Metabase (`metabase-data/`). Caso precise criar a conexão com o `dw_tech_campaign` (Caso 1.1):
 
-| Campo | Valor |
-|---|---|
-| Tipo de banco | MySQL |
-| Host | `mysql` (nome do serviço no compose) |
-| Porta | `3306` |
-| Banco | `dw_vendas` |
-| Usuário | `root` |
-| Senha | `root` |
+| Campo | Valor (Caso 1) | Valor (Caso 1.1) |
+|---|---|---|
+| Tipo de banco | MySQL | MySQL |
+| Host | `mysql` | `mysql` |
+| Porta | `3306` | `3306` |
+| Banco | `dw_vendas` | `dw_tech_campaign` |
+| Usuário | `root` | `root` |
+| Senha | `root` | `root` |
 
 ### 5. Consultas Analíticas (OLAP via Terminal)
 
-Para inspecionar o Data Warehouse e testar as visões analíticas implementadas na entrega acadêmica:
+Para inspecionar os Data Warehouses e testar as visões analíticas implementadas nas entregas acadêmicas:
 
-**Conexão interativa ao DW:**
+**Conexão interativa aos DWs:**
 ```bash
+# Conectar ao DW do Caso 1:
 docker exec -it oltp_dw_mysql mysql -uroot -proot dw_vendas
+
+# Conectar ao DW do Caso 1.1:
+docker exec -it oltp_dw_mysql mysql -uroot -proot dw_tech_campaign
 ```
 
-**Executar o script com as 6 visões analíticas de uma vez:**
+**Executar os scripts de visões analíticas de uma vez:**
 ```bash
+# Executar as 6 visões analíticas do Caso 1:
 docker exec -i oltp_dw_mysql mysql -uroot -proot dw_vendas < ../caso_1/solucao/03_consultas_analiticas.sql
+
+# Executar as 8 consultas das Áreas de Convergência do Caso 1.1:
+docker exec -i oltp_dw_mysql mysql -uroot -proot dw_tech_campaign < ../caso_1.1/solucao/03_consultas_metricas_ac.sql
 ```
 
 ### 6. Parar o ambiente
@@ -95,21 +105,18 @@ docker/
 ├── init/                    # Scripts SQL executados automaticamente no primeiro boot
 │   ├── 01_oltp.sql          # Dados operacionais base (vendas_db, logistica_db, financeiro_db)
 │   ├── 02_dados_extras.sql  # Volume histórico complementar (3000 vendas, 300 clientes)
-│   ├── 03_criar_dw.sql      # DDL do Data Warehouse dw_vendas (Star Schema)
-│   └── 04_etl_carga.sql     # Pipeline ETL (transformação e carga em dw_vendas)
+│   ├── 03_criar_dw.sql      # DDL do DW dw_vendas (Caso 1 - Star Schema)
+│   ├── 04_etl_carga.sql     # Pipeline ETL do DW dw_vendas (Caso 1)
+│   ├── 05_criar_dw_expandido.sql # DDL do DW dw_tech_campaign (Caso 1.1 - Constelação)
+│   └── 06_etl_carga_integrada.sql# Pipeline ETL integrado do DW dw_tech_campaign (Caso 1.1)
 ├── metabase-data/           # Base H2 persistida com dashboards e gráficos prontos
 │   └── metabase.db/
 └── README.md                # Este documento de instruções
 ```
 
-## Relação com os Scripts de Entrega (`../solucao/`)
+## Relação com os Scripts de Entrega Modular
 
-Os arquivos dentro da pasta `../solucao/` são os artefatos oficiais da entrega da atividade:
+Os artefatos oficiais de entrega estão organizados por módulo:
 
-| Arquivo | Descrição |
-|---|---|
-| `solucao/01_criar_dw.sql` | Script DDL original de criação do DW `dw_vendas` e modelo Star Schema |
-| `solucao/02_etl_carga.sql` | Script original do pipeline de Extração, Transformação e Carga (ETL) |
-| `solucao/03_consultas_analiticas.sql` | 6 visões analíticas (3 obrigatórias da atividade + 3 bônus executivas) |
-| `solucao/diagrama_star_schema.png` | Diagrama em alta resolução do modelo Star Schema |
-| `solucao/diagrama_star_schema.puml` | Código-fonte do diagrama em PlantUML |
+* **Caso 1 (`caso_1/solucao/`):** Modelagem dimensional básica para Vendas (`dw_vendas`).
+* **Caso 1.1 (`caso_1.1/solucao/`):** Modelagem integrada em Constelação de Fatos para a Campanha Promocional (`dw_tech_campaign`), com 8 Áreas de Convergência, KPIs operacionais e enriquecimento de dados.
