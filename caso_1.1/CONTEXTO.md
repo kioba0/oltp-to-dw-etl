@@ -148,12 +148,12 @@ flowchart TD
 ### Camada Dimensional (DW dw_tech_campaign):
 O DW do Caso 1.1 consolida os silos em um modelo multidimensional (Constelação de Fatos) que coloca a **Venda como eixo integrador**, cruzando dados comerciais, logísticos e financeiros:
 - **Tabelas Dimensão:**
-  - `Dim_Tempo`: Decomposição temporal completa (`sk_tempo`, `data_completa`, `dia`, `mes`, `nome_mes`, `trimestre`, `ano`, `dia_semana`).
+  - `Dim_Tempo`: Decomposição temporal completa (`sk_tempo`, `data_completa`, `dia`, `mes`, `nome_mes`, `trimestre`, `ano`, `dia_semana`, `eh_fim_de_semana`).
   - `Dim_Cliente`: Perfil regional do consumidor (`sk_cliente`, `id_cliente_origem`, `nome_cliente`, `cidade`, `estado`).
-  - `Dim_Produto`: Atributos, categorias e faixas de preço (`sk_produto`, `id_produto_origem`, `nome_produto`, `categoria`, `preco`).
+  - `Dim_Produto`: Atributos, categorias, faixas de preço e controle de ressuprimento (`sk_produto`, `id_produto_origem`, `nome_produto`, `categoria`, `preco`, `quantidade_estoque_disponivel`, `estoque_minimo_seguranca`).
   - `Dim_Fornecedor`: Nome, contato e categoria de suprimentos (`sk_fornecedor`, `id_fornecedor_origem`, `nome_fornecedor`, `contato`).
-  - `Dim_Entrega`: Status e modalidade de entrega (`sk_entrega`, `id_entrega_origem`, `status_entrega`).
-  - `Dim_Pagamento`: Método de pagamento (`sk_pagamento`, `id_pagamento_origem`, `metodo_pagamento`).
+  - `Dim_Entrega`: Status, modalidade e canal de fulfillment (`sk_entrega`, `id_entrega_origem`, `status_entrega`, `modalidade_frete`, `canal_fulfillment`).
+  - `Dim_Pagamento`: Método de pagamento, liquidação e termos (`sk_pagamento`, `id_pagamento_origem`, `metodo_pagamento`, `tipo_liquidacao`, `permite_parcelamento`).
 - **Tabelas Fato:**
   - `Fato_Vendas_Integrada` (Fato Central):
     - Granularidade: 1 linha por transação individual de venda.

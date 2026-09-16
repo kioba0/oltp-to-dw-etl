@@ -1,6 +1,7 @@
 -- ====================================================================
 -- Atividade 1.1: Consultas Analíticas das 8 Áreas de Convergência (OLAP)
 -- Banco Analítico: dw_tech_campaign (Data Warehouse Integrado)
+-- Padrão de Excelência: Fórmulas de Negócio, CTEs e Métricas Reais de Operação
 -- ====================================================================
 
 USE dw_tech_campaign;
@@ -94,11 +95,12 @@ ORDER BY fa.ano;
 
 -- ====================================================================
 -- 4. LOGÍSTICA EXTERNA (Atividade 4.1 — Expedição e Gestão de Despacho de Entregas)
--- KPI: Lead Time Médio de Entrega (dias) e Índice de Pontualidade por UF
--- Objetivo: Identificar gargalos regionais de transporte e tempo de trânsito.
+-- KPI: Lead Time Médio de Entrega, Modalidade e Pontualidade por UF
+-- Objetivo: Monitorar tempo de trânsito por modalidade (Expressa vs Padrão) e por estado.
 -- ====================================================================
 SELECT 
     dc.estado AS uf,
+    de.modalidade_frete,
     COUNT(fv.id_fato_venda) AS total_pedidos,
     ROUND(AVG(fv.dias_para_entrega), 1) AS lead_time_medio_dias,
     MIN(fv.dias_para_entrega) AS lead_time_minimo_dias,
@@ -107,8 +109,9 @@ SELECT
     ROUND(SUM(CASE WHEN fv.flag_entregue_no_prazo = TRUE THEN 1 ELSE 0 END) * 100.0 / COUNT(fv.id_fato_venda), 2) AS taxa_pontualidade_pct
 FROM dw_tech_campaign.Fato_Vendas_Integrada fv
 JOIN dw_tech_campaign.Dim_Cliente dc ON fv.sk_cliente = dc.sk_cliente
-GROUP BY dc.estado
-ORDER BY taxa_pontualidade_pct DESC, lead_time_medio_dias ASC;
+JOIN dw_tech_campaign.Dim_Entrega de ON fv.sk_entrega = de.sk_entrega
+GROUP BY dc.estado, de.modalidade_frete
+ORDER BY uf ASC, taxa_pontualidade_pct DESC;
 
 
 -- ====================================================================
@@ -130,30 +133,54 @@ ORDER BY volume_financeiro_movimentado DESC;
 
 
 -- ====================================================================
--- 6. PRODUÇÃO / OPERAÇÕES (Atividade 6.1 — Gestão de Estoque e Prevenção de Ruptura)
--- KPI: Taxa de Giro e Demanda por Categoria de Produto
--- Objetivo: Monitorar quais linhas exigem maior estoque de segurança para evitar stockout.
+-- 6. PRODUÇÃO / OPERAÇÕES (Atividade 6.1 — Gestão de Estoque e Ruptura Real)
+-- KPI: Taxa Real de Ruptura de Estoque (% Stockout) e Cobertura por Categoria
+-- Objetivo: Confrontar o saldo físico remanescente no armazém contra o limiar de
+--           segurança (50 un) e apurar o índice de produtos em ruptura/risco crítico.
 -- ====================================================================
+WITH produtos_status AS (
+    SELECT 
+        dp.sk_produto,
+        dp.nome_produto,
+        dp.categoria,
+        dp.quantidade_estoque_disponivel AS saldo_estoque_atual,
+        dp.estoque_minimo_seguranca,
+        SUM(fv.quantidade) AS total_unidades_demandadas,
+        CASE 
+            WHEN dp.quantidade_estoque_disponivel = 0 THEN 'Ruptura Total (Esgotado)'
+            WHEN dp.quantidade_estoque_disponivel <= dp.estoque_minimo_seguranca THEN 'Estoque Crítico (Risco Alto)'
+            ELSE 'Estoque Regular'
+        END AS situacao_estoque,
+        CASE 
+            WHEN dp.quantidade_estoque_disponivel <= dp.estoque_minimo_seguranca THEN 1 
+            ELSE 0 
+        END AS flag_em_risco_ruptura
+    FROM dw_tech_campaign.Dim_Produto dp
+    LEFT JOIN dw_tech_campaign.Fato_Vendas_Integrada fv ON dp.sk_produto = fv.sk_produto
+    GROUP BY dp.sk_produto, dp.nome_produto, dp.categoria, dp.quantidade_estoque_disponivel, dp.estoque_minimo_seguranca
+)
 SELECT 
-    dp.categoria,
-    COUNT(DISTINCT dp.sk_produto) AS total_modelos_ativos,
-    SUM(fv.quantidade) AS total_itens_vendidos,
-    SUM(fv.valor_total_venda) AS receita_total_categoria,
-    ROUND(AVG(dp.preco), 2) AS preco_medio_produto,
-    ROUND(SUM(fv.quantidade) / COUNT(DISTINCT dp.sk_produto), 1) AS taxa_giro_por_modelo
-FROM dw_tech_campaign.Fato_Vendas_Integrada fv
-JOIN dw_tech_campaign.Dim_Produto dp ON fv.sk_produto = dp.sk_produto
-GROUP BY dp.categoria
-ORDER BY total_itens_vendidos DESC;
+    categoria,
+    COUNT(sk_produto) AS total_modelos_ativos,
+    SUM(total_unidades_demandadas) AS demanda_total_vendida,
+    SUM(saldo_estoque_atual) AS saldo_total_em_armazem,
+    SUM(flag_em_risco_ruptura) AS modelos_em_risco_ou_ruptura,
+    ROUND(SUM(flag_em_risco_ruptura) * 100.0 / COUNT(sk_produto), 2) AS taxa_ruptura_percentual,
+    ROUND(SUM(saldo_estoque_atual) * 1.0 / NULLIF(SUM(total_unidades_demandadas), 0), 2) AS razao_cobertura_estoque_demanda
+FROM produtos_status
+GROUP BY categoria
+ORDER BY taxa_ruptura_percentual DESC, demanda_total_vendida DESC;
 
 
 -- ====================================================================
 -- 7. FINANÇAS (Atividade 7.1 — Conciliação Financeira e Margem de Contribuição)
--- KPI: Volume Liquidado por Método de Pagamento e Adimplência
--- Objetivo: Avaliar o fluxo de caixa efetivo e a distribuição dos meios de pagamento.
+-- KPI: Volume Liquidado por Método, Tipo de Liquidação e Parcelamento
+-- Objetivo: Avaliar liquidez imediata (D+0) vs capital a receber a prazo (D+30).
 -- ====================================================================
 SELECT 
     dpg.metodo_pagamento,
+    dpg.tipo_liquidacao,
+    dpg.permite_parcelamento,
     COUNT(fv.id_fato_venda) AS total_transacoes,
     SUM(fv.valor_total_venda) AS faturamento_bruto,
     SUM(fv.valor_pago) AS total_liquidado_em_caixa,
@@ -161,7 +188,7 @@ SELECT
     ROUND(AVG(fv.valor_total_venda), 2) AS ticket_medio_transacao
 FROM dw_tech_campaign.Fato_Vendas_Integrada fv
 JOIN dw_tech_campaign.Dim_Pagamento dpg ON fv.sk_pagamento = dpg.sk_pagamento
-GROUP BY dpg.metodo_pagamento
+GROUP BY dpg.metodo_pagamento, dpg.tipo_liquidacao, dpg.permite_parcelamento
 ORDER BY total_liquidado_em_caixa DESC;
 
 

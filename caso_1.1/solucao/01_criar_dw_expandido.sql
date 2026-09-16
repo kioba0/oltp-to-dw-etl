@@ -5,7 +5,8 @@
 -- ====================================================================
 
 -- 1. Criação do Banco de Dados Analítico
-CREATE DATABASE IF NOT EXISTS dw_tech_campaign
+DROP DATABASE IF EXISTS dw_tech_campaign;
+CREATE DATABASE dw_tech_campaign
     CHARACTER SET utf8mb4 
     COLLATE utf8mb4_unicode_ci;
 
@@ -37,13 +38,15 @@ CREATE TABLE IF NOT EXISTS Dim_Cliente (
     estado VARCHAR(50)
 );
 
--- 2.3 Dim_Produto: Catálogo de hardware, periféricos e móveis
+-- 2.3 Dim_Produto: Catálogo enriquecido com atributos de estoque e ressuprimento
 CREATE TABLE IF NOT EXISTS Dim_Produto (
     sk_produto INT AUTO_INCREMENT PRIMARY KEY,
     id_produto_origem INT NOT NULL,
     nome_produto VARCHAR(100) NOT NULL,
     categoria VARCHAR(50),
-    preco DECIMAL(10, 2) NOT NULL
+    preco DECIMAL(10, 2) NOT NULL,
+    quantidade_estoque_disponivel INT NOT NULL DEFAULT 0,
+    estoque_minimo_seguranca INT NOT NULL DEFAULT 50
 );
 
 -- 2.4 Dim_Fornecedor: Parceiros de suprimentos comerciais
@@ -54,18 +57,22 @@ CREATE TABLE IF NOT EXISTS Dim_Fornecedor (
     contato VARCHAR(100)
 );
 
--- 2.5 Dim_Entrega: Status operacional e canal de fulfillment
+-- 2.5 Dim_Entrega: Status operacional, modalidade e canal de fulfillment
 CREATE TABLE IF NOT EXISTS Dim_Entrega (
     sk_entrega INT AUTO_INCREMENT PRIMARY KEY,
     id_entrega_origem INT NOT NULL,
-    status_entrega VARCHAR(50) NOT NULL
+    status_entrega VARCHAR(50) NOT NULL,
+    modalidade_frete VARCHAR(50) NOT NULL DEFAULT 'Logística Padrão',
+    canal_fulfillment VARCHAR(50) NOT NULL DEFAULT 'Transportadora'
 );
 
--- 2.6 Dim_Pagamento: Método financeiro de liquidação
+-- 2.6 Dim_Pagamento: Método financeiro, tipo de liquidação e parcelamento
 CREATE TABLE IF NOT EXISTS Dim_Pagamento (
     sk_pagamento INT AUTO_INCREMENT PRIMARY KEY,
     id_pagamento_origem INT NOT NULL,
-    metodo_pagamento VARCHAR(50) NOT NULL
+    metodo_pagamento VARCHAR(50) NOT NULL,
+    tipo_liquidacao VARCHAR(50) NOT NULL DEFAULT 'Instantânea',
+    permite_parcelamento BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 -- --------------------------------------------------------------------

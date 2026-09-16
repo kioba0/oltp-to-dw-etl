@@ -21,7 +21,7 @@ skinparam arrow {
     FontSize 10
 }
 
-title **Data Warehouse dw_tech_campaign — Esquema Dimensional (Constelação de Fatos)**\nIntegração de Vendas, Logística e Finanças
+title **Data Warehouse dw_tech_campaign — Esquema Dimensional (Constelação de Fatos)**\nIntegração de Vendas, Logística, Estoque e Finanças
 
 ' ─────────────────────────────────────────────────────────────
 ' TABELAS DIMENSÃO (CONFORMADAS)
@@ -56,6 +56,8 @@ entity "**Dim_Produto**" as Dim_Produto << (D,#93C5FD) Dimensão >> {
     nome_produto : VARCHAR(100)
     categoria : VARCHAR(50)
     preco : DECIMAL(10,2)
+    quantidade_estoque_disponivel : INT
+    estoque_minimo_seguranca : INT
 }
 
 entity "**Dim_Fornecedor**" as Dim_Fornecedor << (D,#93C5FD) Dimensão >> {
@@ -71,6 +73,8 @@ entity "**Dim_Entrega**" as Dim_Entrega << (D,#93C5FD) Dimensão >> {
     --
     id_entrega_origem : INT
     status_entrega : VARCHAR(50)
+    modalidade_frete : VARCHAR(50)
+    canal_fulfillment : VARCHAR(50)
 }
 
 entity "**Dim_Pagamento**" as Dim_Pagamento << (D,#93C5FD) Dimensão >> {
@@ -78,6 +82,8 @@ entity "**Dim_Pagamento**" as Dim_Pagamento << (D,#93C5FD) Dimensão >> {
     --
     id_pagamento_origem : INT
     metodo_pagamento : VARCHAR(50)
+    tipo_liquidacao : VARCHAR(50)
+    permite_parcelamento : BOOLEAN
 }
 
 ' ─────────────────────────────────────────────────────────────
