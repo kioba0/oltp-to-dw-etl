@@ -172,15 +172,19 @@ O DW do Caso 1.1 consolida os silos em um modelo multidimensional (Constelação
 
 ```
 caso_1.1/
-├── CONTEXTO.md                     # Este documento estruturante
-├── CHECKLIST.md                    # Plano de execução passo a passo
+├── CONTEXTO.md                     # Fundamentação teórica e especificações detalhadas
+├── CHECKLIST.md                    # Plano de execução passo a passo (100% concluído)
 │
-├── solucao/                        # Artefatos executáveis de entrega
-│   ├── 01_criar_dw_expandido.sql   # DDL do DW com modelo integrado
-│   ├── 02_etl_carga_integrada.sql  # Pipeline ETL integrando os 3 bancos
-│   └── 03_consultas_metricas_ac.sql# Queries SQL calculando os 8 KPIs
+├── solucao/                        # Pacote consolidado de entrega (pronto para envio/zip)
+│   ├── 01_criar_dw_expandido.sql   # DDL do DW com modelo integrado (Constelação)
+│   ├── 02_etl_carga_integrada.sql  # Pipeline ETL integrando os 3 bancos operacionais
+│   ├── 03_consultas_metricas_ac.sql# Queries SQL calculando os 8 KPIs das A.C.s
+│   ├── mapa_areas_convergencia.png # Diagrama de fluxo e integração das 8 A.C.s
+│   ├── mapa_areas_convergencia.puml# Código PlantUML do mapa de áreas
+│   ├── star_schema_integrado.png   # Diagrama dimensional do DW expandido
+│   └── star_schema_integrado.puml  # Código PlantUML do Star Schema integrado
 │
-└── diagramas/                      # Artefatos visuais
+└── diagramas/                      # Artefatos visuais fonte
     ├── mapa_areas_convergencia.puml
     ├── mapa_areas_convergencia.png
     ├── star_schema_integrado.puml

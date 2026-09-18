@@ -40,14 +40,18 @@ atividade_1/
 ├── caso_1.1/                           # Estudo de Caso 1.1: Áreas de Convergência Tech [100% CONCLUÍDO]
 │   ├── CONTEXTO.md                     # 8 A.C.s, Atividades, Métricas/KPIs e Conectores
 │   ├── CHECKLIST.md                    # Roteiro de implementação passo a passo
-│   ├── solucao/                        # Scripts SQL e pipeline dimensional
+│   ├── solucao/                        # Pacote consolidado de entrega (pronto para envio/zip)
 │   │   ├── 01_criar_dw_expandido.sql   # DDL do banco analítico dw_tech_campaign
 │   │   ├── 02_etl_carga_integrada.sql  # Pipeline ETL unindo os 3 silos OLTP
-│   │   └── 03_consultas_metricas_ac.sql# 8 queries analíticas para os KPIs das A.C.s
-│   └── diagramas/                      # Artefatos visuais
-│       ├── mapa_areas_convergencia.png # Diagrama de fluxo e conectores das 8 A.C.s
+│   │   ├── 03_consultas_metricas_ac.sql# 8 queries analíticas para os KPIs das A.C.s
+│   │   ├── mapa_areas_convergencia.png # Diagrama de fluxo e conectores das 8 A.C.s
+│   │   ├── mapa_areas_convergencia.puml
+│   │   ├── star_schema_integrado.png   # Diagrama da Constelação de Fatos
+│   │   └── star_schema_integrado.puml
+│   └── diagramas/                      # Artefatos visuais fonte
+│       ├── mapa_areas_convergencia.png
 │       ├── mapa_areas_convergencia.puml
-│       ├── star_schema_integrado.png   # Diagrama da Constelação de Fatos
+│       ├── star_schema_integrado.png
 │       └── star_schema_integrado.puml
 │
 └── docker/                             # Infraestrutura local compartilhada (Zero-Touch)
